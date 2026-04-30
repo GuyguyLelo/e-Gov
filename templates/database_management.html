@@ -1,0 +1,134 @@
+{% extends 'home.html' %}
+
+{% block title %}Gestion de base de données - e-Gov{% endblock %}
+
+{% block extra_css %}
+<style>
+    .db-hero {
+        background: linear-gradient(135deg, #2f5fa8 0%, #4f7bc0 100%);
+        color: #fff;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    }
+    .db-panel {
+        border: 0;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    }
+    .db-table thead th {
+        background: #eef3ff;
+        color: #334155;
+        font-size: 0.84rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+    .db-table tbody tr:hover td {
+        background: #f8faff;
+    }
+    .db-form label {
+        font-weight: 600;
+        color: #475569;
+    }
+    .db-form .form-control {
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="db-hero mb-4">
+        <h1 class="h4 mb-2"><i class="fas fa-database me-2"></i>Gestion de base de données</h1>
+        <p class="mb-0">Table de référence <strong>parametres_databases</strong> (base PARAMETRE).</p>
+    </div>
+
+    <div class="card db-panel">
+        <div class="card-body p-4">
+            {% if success_message %}
+                <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
+            {% if error_message %}
+                <div class="alert alert-warning">{{ error_message }}</div>
+            {% endif %}
+
+            <h2 class="h6 text-muted mb-3">Ajouter un enregistrement</h2>
+            <form method="post" class="row g-3 db-form mb-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="col-md-4">
+                    <label class="form-label" for="nom_database_create">Nom database</label>
+                    <input id="nom_database_create" name="nom_database" type="text" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="nom_table_create">Nom table</label>
+                    <input id="nom_table_create" name="nom_table" type="text" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="domaine_create">Domaine</label>
+                    <input id="domaine_create" name="domaine" type="text" class="form-control">
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Ajouter
+                    </button>
+                </div>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 text-muted mb-0">Contenu de la table</h2>
+                <span class="badge bg-light text-dark">{{ rows|length }} ligne(s)</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle db-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nom database</th>
+                            <th>Nom table</th>
+                            <th>Domaine</th>
+                            <th style="width: 210px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="row_ctid" value="{{ row.ctid }}">
+                                    <td>
+                                        <input type="text" name="nom_database" class="form-control form-control-sm" value="{{ row.nom_database }}" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="nom_table" class="form-control form-control-sm" value="{{ row.nom_table }}" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="domaine" class="form-control form-control-sm" value="{{ row.domaine }}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" name="action" value="update" class="btn btn-sm btn-outline-primary">
+                                                Modifier
+                                            </button>
+                                            <button type="submit" name="action" value="delete" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer cette ligne ?');">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </td>
+                                </form>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    Aucune donnée trouvée dans parametres_databases.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,551 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Connexion - e-Gov{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Design professionnel pour la page de connexion */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    width: 100%;
+    max-width: 450px;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.login-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="20" cy="80" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.login-logo {
+    position: relative;
+    z-index: 1;
+}
+
+.login-logo i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: block;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.login-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.login-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+.login-body {
+    padding: 3rem 2rem 2rem 2rem;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.form-floating {
+    position: relative;
+}
+
+.form-floating > .form-control {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.form-floating > .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+    background: white;
+}
+
+.form-floating > label {
+    position: absolute;
+    top: 0;
+    left: 3rem;
+    height: 100%;
+    padding: 1rem 0.75rem;
+    pointer-events: none;
+    border: 1px solid transparent;
+    transform-origin: 0 0;
+    transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    opacity: 0.65;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1.1rem;
+    z-index: 3;
+    transition: color 0.3s ease;
+}
+
+.form-floating > .form-control:focus ~ .input-icon {
+    color: #667eea;
+}
+
+.login-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    width: 100%;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.login-btn:hover::before {
+    left: 100%;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 2rem 0;
+    color: #6c757d;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.divider span {
+    padding: 0 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.register-link {
+    background: transparent;
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.register-link:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    text-decoration: none;
+}
+
+.test-accounts {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.test-accounts h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.test-account {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.test-account:last-child {
+    margin-bottom: 0;
+}
+
+.test-account-title {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.test-credentials {
+    display: flex;
+    gap: 1rem;
+}
+
+.credential-item {
+    background: #f8f9fa;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #495057;
+    border: 1px solid #e9ecef;
+}
+
+.footer-info {
+    text-align: center;
+    margin-top: 2rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.footer-info a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+}
+
+.footer-info a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .login-container {
+        padding: 1rem;
+    }
+    
+    .login-header {
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
+    }
+    
+    .login-body {
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
+    }
+    
+    .login-logo i {
+        font-size: 3rem;
+    }
+    
+    .login-title {
+        font-size: 1.5rem;
+    }
+    
+    .test-credentials {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Animation de chargement */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Effets de focus améliorés */
+.form-floating > .form-control:focus {
+    transform: scale(1.02);
+}
+
+/* Navbar masquée sur la page de login */
+.navbar {
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <!-- En-tête avec logo -->
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fas fa-users"></i>
+                <h1 class="login-title">e-Gov</h1>
+                <p class="login-subtitle">systeme Inteliggent d'analyse</p>
+            </div>
+        </div>
+
+        <!-- Corps du formulaire -->
+        <div class="login-body">
+            <!-- Messages d'erreur/succès -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+                        <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Formulaire de connexion -->
+            <form method="post" id="loginForm">
+                {% csrf_token %}
+                
+                <!-- Champ nom d'utilisateur -->
+                <div class="form-group">
+                    <div class="form-floating">
+                        <input type="text" 
+                               class="form-control" 
+                               name="{{ form.username.name }}" 
+                               id="{{ form.username.id_for_label }}" 
+                               placeholder="Nom d'utilisateur"
+                               value="{{ form.username.value|default:'' }}" 
+                               required>
+                        <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+                        <i class="input-icon fas fa-user"></i>
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in form.username.errors %}
+                                <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Champ mot de passe -->
+                <div class="form-group">
+                    <div class="form-floating">
+                        <input type="password" 
+                               class="form-control" 
+                               name="{{ form.password.name }}" 
+                               id="{{ form.password.id_for_label }}" 
+                               placeholder="Mot de passe"
+                               required>
+                        <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+                        <i class="input-icon fas fa-lock"></i>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in form.password.errors %}
+                                <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Erreurs générales -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" style="border-radius: 10px;">
+                        {% for error in form.non_field_errors %}
+                            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Bouton de connexion -->
+                <button type="submit" class="login-btn" id="loginButton">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Comptes de test -->
+    <div class="test-accounts">
+        <h6>
+            <i class="fas fa-key"></i> Comptes de démonstration
+        </h6>
+        
+        <div class="test-account">
+            <div class="test-account-title">
+                <i class="fas fa-user"></i> Compte de démonstration
+            </div>
+            <div class="test-credentials">
+                <div class="credential-item">Admin</div>
+                <div class="credential-item">123</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations footer -->
+    <div class="footer-info">
+        <p>
+            <i class="fas fa-shield-alt"></i>
+            Connexion sécurisée SSL
+        </p>
+        <p>
+            © 2026 e-Gov
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = document.getElementById('loginButton');
+    
+    // Animation de soumission du formulaire
+    loginForm.addEventListener('submit', function(e) {
+        loginButton.classList.add('loading');
+        loginButton.innerHTML = '';
+        
+        // Réactiver le bouton après 5 secondes au cas où
+        setTimeout(() => {
+            loginButton.classList.remove('loading');
+            loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+        }, 5000);
+    });
+    
+    // Auto-focus sur le premier champ
+    const usernameField = document.querySelector('input[name="username"]');
+    if (usernameField) {
+        usernameField.focus();
+    }
+    
+    // Validation en temps réel
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.style.borderColor = '#dc3545';
+            } else {
+                this.style.borderColor = '#28a745';
+            }
+        });
+        
+        input.addEventListener('focus', function() {
+            this.style.borderColor = '#667eea';
+        });
+    });
+    
+    // Gestion des comptes de test (clic pour remplir)
+    const testCredentials = document.querySelectorAll('.test-account');
+    testCredentials.forEach(account => {
+        account.addEventListener('click', function() {
+            const credentials = this.querySelectorAll('.credential-item');
+            if (credentials.length >= 2) {
+                document.querySelector('input[name="username"]').value = credentials[0].textContent;
+                document.querySelector('input[name="password"]').value = credentials[1].textContent;
+                
+                // Déclencher les événements pour les labels flottants
+                document.querySelector('input[name="username"]').dispatchEvent(new Event('input'));
+                document.querySelector('input[name="password"]').dispatchEvent(new Event('input'));
+            }
+        });
+        
+        // Ajouter un style de hover
+        account.style.cursor = 'pointer';
+        account.title = 'Cliquer pour remplir automatiquement';
+    });
+});
+</script>
+{% endblock %}

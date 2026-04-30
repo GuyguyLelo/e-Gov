@@ -1,0 +1,342 @@
+{% extends 'home.html' %}
+
+{% block title %}Recherche Civil - e-Gov{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-panel,
+    .result-panel {
+        border: 0;
+        border-radius: 16px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .panel-header {
+        background: linear-gradient(135deg, #f8f9ff 0%, #eef1ff 100%);
+        border-bottom: 1px solid #e8ebff;
+        padding: 0.95rem 1.25rem;
+        font-weight: 600;
+        color: #3a4380;
+    }
+
+    .search-panel .form-label {
+        font-weight: 600;
+        color: #3f4752;
+    }
+
+    .search-panel .form-select,
+    .search-panel .form-control {
+        border-radius: 10px;
+        border: 1px solid #dbe2ea;
+    }
+
+    .search-panel .form-select:focus,
+    .search-panel .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+
+    .btn-search {
+        border-radius: 10px;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-back-home {
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+    }
+
+    .result-toolbar {
+        background: linear-gradient(135deg, #f8faff 0%, #f2f6ff 100%);
+        border: 1px solid #e8eefb;
+        border-radius: 14px;
+        padding: 0.8rem 1rem;
+    }
+
+    .table-pro {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e9eef6;
+    }
+
+    .table-pro thead th {
+        background: linear-gradient(180deg, #eff4ff 0%, #e7efff 100%);
+        border-bottom: 0;
+        color: #334155;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        font-weight: 700;
+        padding-top: 0.8rem;
+        padding-bottom: 0.8rem;
+    }
+
+    .table-pro tbody td {
+        vertical-align: middle;
+        border-color: #eef1f5;
+        padding-top: 0.72rem;
+        padding-bottom: 0.72rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .table-pro tbody tr:nth-child(even) td {
+        background: #fcfdff;
+    }
+
+    .table-pro tbody tr:hover td {
+        background: #f5f8ff;
+    }
+
+    .badge-zone {
+        background: linear-gradient(135deg, #e8eeff 0%, #dfe8ff 100%);
+        color: #3347a4;
+        border-radius: 999px;
+        padding: 0.38rem 0.72rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1px solid #d3defe;
+    }
+
+    .btn-view {
+        border-radius: 9px;
+        padding: 0.34rem 0.82rem;
+        font-weight: 600;
+    }
+
+    .table-empty {
+        padding: 1.3rem 0 !important;
+        font-weight: 500;
+        color: #7a8798 !important;
+    }
+
+    .pagination .page-link {
+        border-radius: 10px;
+        margin-left: 0.2rem;
+        margin-right: 0.2rem;
+        border: 1px solid #dbe4f3;
+        color: #4c5a6b;
+        font-weight: 600;
+        min-width: 42px;
+        text-align: center;
+    }
+
+    .pagination .page-item.active .page-link,
+    .pagination .page-link:hover {
+        background: #667eea;
+        border-color: #667eea;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="hero mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h1 class="h3 mb-2">Recherche Civil</h1>
+            <p class="mb-0">Filtrer par province et commune/territoire.</p>
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-back-home">
+            <i class="fas fa-arrow-left me-1"></i>Retour à l'accueil
+        </a>
+    </div>
+
+    <div class="card search-panel">
+        <div class="panel-header">
+            <i class="fas fa-filter me-2"></i>Critères de recherche
+        </div>
+        <div class="card-body p-4">
+            <form id="civilSearchForm" method="get" action="{% url 'civil_search' %}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="province" class="form-label">Province</label>
+                        <select id="province" name="province" class="form-select" required>
+                            <option value="">-- Sélectionner une province --</option>
+                            {% for province in provinces %}
+                                <option value="{{ province }}" {% if province == selected_province %}selected{% endif %}>{{ province }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="commune" class="form-label">Commune / Territoire</label>
+                        <select id="commune" name="commune" class="form-select">
+                            <option value="">-- Toutes les communes/territoires --</option>
+                            {% for commune in communes %}
+                                <option value="{{ commune }}" {% if commune == selected_commune %}selected{% endif %}>{{ commune }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-9">
+                        <label for="q_input" class="form-label">Recherche globale</label>
+                        <input
+                            id="q_input"
+                            name="q"
+                            type="text"
+                            class="form-control"
+                            value="{{ query }}"
+                            placeholder="Saisir un mot-clé (recherche sur toutes les colonnes)"
+                        >
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end justify-content-md-end">
+                        <button type="submit" class="btn btn-primary btn-search">
+                            <i class="fas fa-search me-1"></i>Rechercher
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card result-panel mt-4">
+        <div class="panel-header">
+            <i class="fas fa-table me-2"></i>Résultats
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 result-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="entries" class="mb-0">Entries</label>
+                    <select id="entries" name="entries" form="civilSearchForm" class="form-select form-select-sm" style="width: 90px;">
+                        <option value="10" {% if entries == '10' %}selected{% endif %}>10</option>
+                        <option value="25" {% if entries == '25' %}selected{% endif %}>25</option>
+                        <option value="50" {% if entries == '50' %}selected{% endif %}>50</option>
+                        <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <span class="text-muted small">Recherche active : {{ query|default:"(aucune)" }}</span>
+            </div>
+            <input type="hidden" id="pageInput" name="page" form="civilSearchForm" value="{{ page|default:1 }}">
+
+            <div class="table-responsive shadow-sm rounded-3">
+                <table class="table table-hover align-middle table-pro">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Nom</th>
+                            <th>Postnom</th>
+                            <th>Prénom</th>
+                            <th>Sexe</th>
+                            <th>Téléphone</th>
+                            <th>Adresse</th>
+                            <th>Province/Commune</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <td>{{ row.index }}</td>
+                                <td>{{ row.nom }}</td>
+                                <td>{{ row.postnom }}</td>
+                                <td>{{ row.prenom }}</td>
+                                <td>{{ row.sexe }}</td>
+                                <td>{{ row.telephone }}</td>
+                                <td>{{ row.adresse }}</td>
+                                <td><span class="badge-zone">{{ row.province_commune }}</span></td>
+                                <td>
+                                    {% if row.id %}
+                                        <a href="{% url 'civil_detail' %}?province={{ selected_province|urlencode }}&commune={{ row.commune|urlencode }}&id={{ row.id|urlencode }}"
+                                           class="btn btn-sm btn-outline-primary btn-view">Voir</a>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center table-empty">Aucune donnée à afficher.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3">
+                <small class="text-muted">
+                    {% if total_rows %}
+                        Affichage de {{ rows|length }} sur {{ total_rows }} entrées
+                    {% else %}
+                        0 entrée
+                    {% endif %}
+                </small>
+
+                {% if total_pages > 1 %}
+                    <nav aria-label="Pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                                <a class="page-link" href="#" data-page="{{ prev_page }}">Précédent</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Page {{ page }} / {{ total_pages }}</span>
+                            </li>
+                            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                                <a class="page-link" href="#" data-page="{{ next_page }}">Suivant</a>
+                            </li>
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const provinceSelect = document.getElementById("province");
+        const communeSelect = document.getElementById("commune");
+        const entriesSelect = document.getElementById("entries");
+        const pageInput = document.getElementById("pageInput");
+        const form = document.getElementById("civilSearchForm");
+        const apiUrl = "{% url 'civil_communes_api' %}";
+
+        function resetCommunes() {
+            communeSelect.innerHTML = '<option value="">-- Toutes les communes/territoires --</option>';
+        }
+
+        provinceSelect.addEventListener("change", async function() {
+            const province = this.value;
+            resetCommunes();
+            pageInput.value = "1";
+
+            if (!province) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}?province=${encodeURIComponent(province)}`);
+                const data = await response.json();
+                (data.communes || []).forEach((commune) => {
+                    const option = document.createElement("option");
+                    option.value = commune;
+                    option.textContent = commune;
+                    communeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erreur de chargement des communes:", error);
+            }
+        });
+
+        entriesSelect.addEventListener("change", function() {
+            pageInput.value = "1";
+            form.submit();
+        });
+
+        document.querySelectorAll(".page-link[data-page]").forEach((link) => {
+            link.addEventListener("click", function(event) {
+                event.preventDefault();
+                const page = this.getAttribute("data-page");
+                const parent = this.closest(".page-item");
+                if (!page || !parent || parent.classList.contains("disabled")) {
+                    return;
+                }
+                pageInput.value = page;
+                form.submit();
+            });
+        });
+    })();
+</script>
+{% endblock %}

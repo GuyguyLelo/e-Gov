@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche</title>
+</head>
+<body>
+    <h1>Recherche</h1>
+    <form method="get" action="{% url 'search:results' %}">
+        <label for="q">Mot-clé</label>
+        <input id="q" type="text" name="q" placeholder="Ex: budget">
+        <button type="submit">Rechercher</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,202 @@
+{% extends 'home.html' %}
+
+{% block title %}{{ record.nom }} {{ record.postnom }} - Détail Police{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-shell {
+        max-width: 1200px;
+    }
+
+    .detail-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        color: #fff;
+        padding: 1.4rem 1.6rem;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.2rem;
+    }
+
+    .detail-hero h1 {
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+
+    .sub-meta {
+        display: inline-flex;
+        gap: 0.6rem;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .hero-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .detail-card {
+        border: 0;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .detail-card .card-header {
+        background: #f4f7ff;
+        border-bottom: 1px solid #e8edff;
+        font-weight: 700;
+        color: #364a96;
+    }
+
+    .kv {
+        background: #fbfcff;
+        border: 1px solid #edf0f7;
+        border-radius: 12px;
+        padding: 0.55rem 0.7rem;
+        height: 100%;
+    }
+
+    .kv-label {
+        display: block;
+        color: #6a7480;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 0.05rem;
+        line-height: 1.1;
+    }
+
+    .kv-value {
+        color: #1e2430;
+        font-weight: 600;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    .info-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+    }
+
+    .info-list .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.45rem 0.6rem;
+        border: 1px solid #eef1f5;
+        border-radius: 8px;
+        background: #fbfcff;
+        font-size: 0.9rem;
+    }
+
+    .info-list .info-label {
+        color: #5f6b79;
+        font-weight: 600;
+    }
+
+    .info-list .info-value {
+        color: #1f2937;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    @media (max-width: 768px) {
+        .detail-hero {
+            flex-direction: column-reverse;
+            align-items: flex-start;
+        }
+        .info-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .btn-back {
+        border-radius: 10px;
+        padding: 0.55rem 1rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 detail-shell">
+    <div class="detail-hero mb-4">
+        <div class="hero-main">
+            <h1 class="h3 mb-2">
+                <i class="fas fa-user-shield me-2"></i>
+                {{ record.nom }} {{ record.postnom }} {{ record.prenom }}
+            </h1>
+            <div class="sub-meta">
+                <span>{{ record.province }}</span>
+                <span>/</span>
+                <span>{{ record.commune }}</span>
+                <span>-</span>
+                <span>ID: {{ record.id }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card detail-card mb-4">
+        <div class="card-header">
+            <i class="fas fa-id-card me-2"></i>Informations principales
+        </div>
+        <div class="card-body p-3">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <div class="kv"><span class="kv-label">Nom</span><span class="kv-value">{{ record.nom|default:"-" }}</span></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kv"><span class="kv-label">Postnom</span><span class="kv-value">{{ record.postnom|default:"-" }}</span></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kv"><span class="kv-label">Prénom</span><span class="kv-value">{{ record.prenom|default:"-" }}</span></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kv"><span class="kv-label">Sexe</span><span class="kv-value">{{ record.sexe|default:"-" }}</span></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kv"><span class="kv-label">Téléphone</span><span class="kv-value">{{ record.telephone|default:"-" }}</span></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kv"><span class="kv-label">Adresse</span><span class="kv-value">{{ record.adresse|default:"-" }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card detail-card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-2"></i>Autres informations
+        </div>
+        <div class="card-body p-4">
+            <div class="info-list">
+                {% for item in other_values %}
+                    <div class="info-row">
+                        <span class="info-label">{{ item.label }}</span>
+                        <span class="info-value">{{ item.value }}</span>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted">Aucune information supplémentaire.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'police_detail_pdf' %}?id={{ record.id|urlencode }}" class="btn btn-outline-primary btn-back" target="_blank">
+            <i class="fas fa-file-pdf me-1"></i> Voir la fiche
+        </a>
+        <a href="{% url 'police_search' %}" class="btn btn-outline-secondary btn-back">
+            <i class="fas fa-arrow-left me-1"></i> Retour à la recherche
+        </a>
+    </div>
+</div>
+{% endblock %}
