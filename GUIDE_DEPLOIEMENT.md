@@ -101,7 +101,7 @@ User=egov
 Group=www-data
 WorkingDirectory=/var/www/egov/app
 Environment="DJANGO_SETTINGS_MODULE=eGov.settings"
-ExecStart=/var/www/egov/app/venv/bin/gunicorn eGov.wsgi:application --bind 127.0.0.1:8000 --workers 3
+ExecStart=/var/www/egov/app/venv/bin/gunicorn eGov.wsgi:application --bind 127.0.0.1:8000 --workers 3 --timeout 120
 Restart=always
 
 [Install]
@@ -113,6 +113,8 @@ systemctl enable egov
 systemctl restart egov
 systemctl status egov --no-pager
 ```
+
+Le paramètre `--timeout 120` (secondes) évite les erreurs `WORKER TIMEOUT` sur les recherches lentes ; la valeur par défaut de Gunicorn est 30 s. Augmentez-la si des requêtes restent trop longues malgré tout.
 
 ## 9) Configuration Nginx
 

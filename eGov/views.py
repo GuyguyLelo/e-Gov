@@ -446,7 +446,15 @@ def civil_search(request):
                             select_parts.append(f'NULL::text AS "{alias}"')
                     select_parts.append('%s::text AS "commune"')
 
-                    search_parts = [f"COALESCE({quote(col)}::text, '') ILIKE %s" for col in columns]
+                    search_col_names = []
+                    for _alias, real_col in selected_cols.items():
+                        if real_col and real_col not in search_col_names:
+                            search_col_names.append(real_col)
+                    if not search_col_names:
+                        search_col_names = list(columns)
+                    search_parts = [
+                        f"COALESCE({quote(col)}::text, '') ILIKE %s" for col in search_col_names
+                    ]
                     table_params = [commune_name]
                     where_clause = ""
                     if tokens and search_parts:
@@ -569,7 +577,13 @@ def police_search(request):
                     else:
                         select_parts.append(f'NULL::text AS "{alias}"')
 
-                for col in columns:
+                search_col_names = []
+                for _alias, real_col in selected_cols.items():
+                    if real_col and real_col not in search_col_names:
+                        search_col_names.append(real_col)
+                if not search_col_names:
+                    search_col_names = list(columns)
+                for col in search_col_names:
                     search_parts.append(f"COALESCE({quote(col)}::text, '') ILIKE %s")
 
                 base_sql = f"FROM {quote(physical_table)}"
