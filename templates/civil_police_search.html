@@ -51,6 +51,13 @@
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
+    .filter-page-input {
+        max-width: 280px;
+        border-radius: 10px;
+    }
+    #civil-police-search-zone {
+        scroll-margin-top: 88px;
+    }
     @media (max-width: 767px) {
         .container.py-5 { padding-top: 1.1rem !important; padding-bottom: 1.1rem !important; }
         .table-pro { min-width: 860px; }
@@ -70,7 +77,7 @@
         </a>
     </div>
 
-    <div class="card search-panel mb-4">
+    <div class="card search-panel mb-4" id="civil-police-search-zone">
         <div class="panel-header">
             <i class="fas fa-filter me-2"></i>Critères
         </div>
@@ -147,8 +154,12 @@
             <span class="badge bg-primary badge-source">CIVIL</span>
         </div>
         <div class="card-body p-4">
-            <div class="result-toolbar mb-3">
-                <span class="text-muted small">Province : <strong>{{ selected_province|default:"(non choisie)" }}</strong> — Requête : <strong>{{ query|default:"(vide)" }}</strong></span>
+            <div class="result-toolbar mb-3 d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <span class="text-muted small">Province (civil) : <strong>{{ selected_province|default:"(non choisie)" }}</strong>{% if selected_commune %} — Commune : <strong>{{ selected_commune }}</strong>{% endif %}</span>
+                <span class="text-muted small text-end" title="Texte envoyé au serveur pour l’état civil et POLICE">
+                    <span class="d-block small text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.04em;">Mots-clés serveur</span>
+                    <span class="d-block">{% if query %}<strong>« {{ query }} »</strong>{% else %}<span class="text-black-50">(aucun)</span>{% endif %}</span>
+                </span>
             </div>
             <div class="table-responsive shadow-sm rounded-3">
                 <table class="table table-hover align-middle table-pro">
@@ -219,8 +230,20 @@
             <span class="badge bg-info text-dark badge-source">POLICE</span>
         </div>
         <div class="card-body p-4">
-            <div class="result-toolbar mb-3">
-                <span class="text-muted small">Table <strong>POLICE</strong> — même requête (inclut le matricule si la colonne existe) : <strong>{{ query|default:"(vide)" }}</strong></span>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 result-toolbar">
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+                    <a href="#civil-police-search-zone" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center" title="Modifier province, commune ou mots-clés">
+                        <i class="fas fa-sliders me-1"></i>Modifier les critères
+                    </a>
+                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 200px;">
+                        <label for="policeCpTableFilter" class="mb-0 text-nowrap small text-muted d-none d-sm-inline">Filtrer cette page</label>
+                        <input type="search" id="policeCpTableFilter" class="form-control form-control-sm filter-page-input" placeholder="Filtrer les lignes POLICE…" autocomplete="off" title="Filtre local sur le tableau POLICE">
+                    </div>
+                </div>
+                <span class="text-muted small text-end" title="Même paramètre q que pour l’état civil sur cette page">
+                    <span class="d-block small text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.04em;">Critères appliqués (POLICE)</span>
+                    <span class="d-block">Mots-clés serveur : {% if query %}<strong>« {{ query }} »</strong>{% else %}<span class="text-black-50">(aucun)</span>{% endif %}</span>
+                </span>
             </div>
             <div class="table-responsive shadow-sm rounded-3">
                 <table class="table table-hover align-middle table-pro">
@@ -237,9 +260,9 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="policeCpResultsBody">
                         {% for row in police.rows %}
-                            <tr>
+                            <tr class="police-cp-data-row">
                                 <td>{{ row.index }}</td>
                                 <td>{{ row.nom }}</td>
                                 <td>{{ row.postnom }}</td>
@@ -257,8 +280,8 @@
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr>
-                                <td colspan="9" class="text-center text-muted py-4">Aucun résultat dans la table POLICE.</td>
+                            <tr class="police-cp-empty-row">
+                                <td colspan="9" class="text-center text-muted py-4">Aucun résultat dans la table POLICE pour ces mots-clés serveur.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -352,6 +375,22 @@
                 form.submit();
             });
         });
+
+        const policeFilter = document.getElementById("policeCpTableFilter");
+        const policeTbody = document.getElementById("policeCpResultsBody");
+        if (policeFilter && policeTbody) {
+            policeFilter.addEventListener("input", function() {
+                const q = this.value.trim().toLowerCase();
+                policeTbody.querySelectorAll("tr.police-cp-data-row").forEach((tr) => {
+                    if (!q) {
+                        tr.style.display = "";
+                        return;
+                    }
+                    const text = (tr.textContent || "").toLowerCase();
+                    tr.style.display = text.indexOf(q) !== -1 ? "" : "none";
+                });
+            });
+        }
     })();
 </script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'home.html' %}
 
-{% block title %}Recherche Police - e-Gov{% endblock %}
+{% block title %}Recherche Police - Fusion{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -28,6 +28,26 @@
         border: 1px solid #e8eefb;
         border-radius: 14px;
         padding: 0.8rem 1rem;
+    }
+    .filter-page-input {
+        max-width: 280px;
+        border-radius: 10px;
+    }
+    #police-search-zone {
+        scroll-margin-top: 88px;
+        border: 1px solid #c7d2fe;
+        box-shadow: 0 8px 28px rgba(102, 126, 234, 0.12);
+    }
+    #police-search-zone .panel-header {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    }
+    .btn-police-submit {
+        width: 100%;
+    }
+    @media (min-width: 992px) {
+        .btn-police-submit {
+            width: auto;
+        }
     }
     .table-pro thead th {
         background: linear-gradient(180deg, #eff4ff 0%, #e7efff 100%);
@@ -78,19 +98,20 @@
         </a>
     </div>
 
-    <div class="card search-panel">
+    <div class="card search-panel" id="police-search-zone">
         <div class="panel-header">
-            <i class="fas fa-search me-2"></i>Critères de recherche
+            <i class="fas fa-search me-2"></i>Zone de recherche (POLICE)
         </div>
         <div class="card-body p-4">
+            <p class="text-muted small mb-3"><i class="fas fa-circle-info text-primary me-1"></i>Ces mots-clés sont envoyés au serveur pour interroger la table <strong>POLICE</strong> (nom, prénom, téléphone, adresse, <strong>matricule</strong> si la colonne existe).</p>
             <form id="policeSearchForm" method="get" action="{% url 'police_search' %}">
-                <div class="row g-3">
-                    <div class="col-md-9">
-                        <label for="q_input" class="form-label">Recherche globale</label>
-                        <input id="q_input" name="q" type="text" class="form-control" value="{{ query }}" placeholder="Nom, matricule, téléphone…">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-lg">
+                        <label for="q_input" class="form-label">Mots-clés (serveur)</label>
+                        <input id="q_input" name="q" type="text" class="form-control" value="{{ query }}" placeholder="Ex. MOTOMBO, matricule, téléphone…">
                     </div>
-                    <div class="col-md-3 d-flex align-items-end justify-content-md-end">
-                        <button type="submit" class="btn btn-primary btn-search">
+                    <div class="col-12 col-lg-auto">
+                        <button type="submit" class="btn btn-primary btn-search btn-police-submit">
                             <i class="fas fa-search me-1"></i>Rechercher
                         </button>
                     </div>
@@ -106,16 +127,28 @@
         </div>
         <div class="card-body p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 result-toolbar">
-                <div class="d-flex align-items-center gap-2">
-                    <label for="entries" class="mb-0">Entries</label>
-                    <select id="entries" name="entries" form="policeSearchForm" class="form-select form-select-sm" style="width: 90px;">
-                        <option value="10" {% if entries == '10' %}selected{% endif %}>10</option>
-                        <option value="25" {% if entries == '25' %}selected{% endif %}>25</option>
-                        <option value="50" {% if entries == '50' %}selected{% endif %}>50</option>
-                        <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
-                    </select>
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+                    <a href="#police-search-zone" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center" title="Remonter au formulaire de mots-clés">
+                        <i class="fas fa-sliders me-1"></i>Modifier les critères
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="entries" class="mb-0 text-nowrap">Lignes / page</label>
+                        <select id="entries" name="entries" form="policeSearchForm" class="form-select form-select-sm" style="width: 90px;">
+                            <option value="10" {% if entries == '10' %}selected{% endif %}>10</option>
+                            <option value="25" {% if entries == '25' %}selected{% endif %}>25</option>
+                            <option value="50" {% if entries == '50' %}selected{% endif %}>50</option>
+                            <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 200px;">
+                        <label for="policeTableFilter" class="mb-0 text-nowrap small text-muted d-none d-sm-inline">Filtrer cette page</label>
+                        <input type="search" id="policeTableFilter" class="form-control form-control-sm filter-page-input" placeholder="Filtrer les lignes affichées…" autocomplete="off" title="Masque les lignes du tableau qui ne contiennent pas ce texte">
+                    </div>
                 </div>
-                <span class="text-muted small">Recherche active : <strong>{{ query|default:"(aucune)" }}</strong></span>
+                <span class="text-muted small text-end result-criteria-line" title="Texte envoyé au serveur au dernier « Rechercher »">
+                    <span class="d-block small text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.04em;">Critères appliqués</span>
+                    <span class="d-block">Mots-clés serveur : {% if query %}<strong>« {{ query }} »</strong>{% else %}<span class="text-black-50">(aucun)</span>{% endif %}</span>
+                </span>
             </div>
 
             <div class="table-responsive">
@@ -133,9 +166,9 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="policeResultsBody">
                         {% for row in rows %}
-                            <tr>
+                            <tr class="police-data-row">
                                 <td>{{ row.index }}</td>
                                 <td>{{ row.nom }}</td>
                                 <td>{{ row.postnom }}</td>
@@ -153,8 +186,8 @@
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr>
-                                <td colspan="9" class="text-center text-muted">Aucune donnée à afficher.</td>
+                            <tr class="police-empty-row">
+                                <td colspan="9" class="text-center text-muted py-4">Aucune donnée à afficher. Saisissez des mots-clés dans la <a href="#police-search-zone" class="link-primary">zone de recherche</a> puis lancez la recherche.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -206,6 +239,22 @@
                 form.submit();
             });
         });
+
+        const filterInput = document.getElementById("policeTableFilter");
+        const tbody = document.getElementById("policeResultsBody");
+        if (filterInput && tbody) {
+            filterInput.addEventListener("input", function() {
+                const q = this.value.trim().toLowerCase();
+                tbody.querySelectorAll("tr.police-data-row").forEach((tr) => {
+                    if (!q) {
+                        tr.style.display = "";
+                        return;
+                    }
+                    const text = (tr.textContent || "").toLowerCase();
+                    tr.style.display = text.indexOf(q) !== -1 ? "" : "none";
+                });
+            });
+        }
     })();
 </script>
 {% endblock %}

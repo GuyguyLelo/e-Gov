@@ -1,6 +1,6 @@
 {% extends 'home.html' %}
 
-{% block title %}Recherche Civil - e-Gov{% endblock %}
+{% block title %}Recherche Civil - Fusion{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -129,6 +129,45 @@
         border-color: #667eea;
         color: #fff;
     }
+    #civil-search-zone {
+        scroll-margin-top: 88px;
+        border: 1px solid #c7d2fe;
+        box-shadow: 0 8px 28px rgba(102, 126, 234, 0.12);
+    }
+    #civil-search-zone .panel-header {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    }
+    .search-zone-hint {
+        font-size: 0.88rem;
+        color: #5c6578;
+        margin-top: 0.35rem;
+    }
+    .filter-page-input {
+        max-width: 280px;
+        border-radius: 10px;
+    }
+    .btn-civil-submit {
+        width: 100%;
+    }
+    @media (min-width: 992px) {
+        .civil-search-form-row .civil-province-col {
+            flex: 0 0 16rem;
+            width: 16rem;
+            max-width: 16rem;
+        }
+        .civil-search-form-row .civil-commune-col {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        .civil-search-form-row .civil-q-col {
+            flex: 0 0 12.5rem;
+            width: 12.5rem;
+            max-width: 12.5rem;
+        }
+        .btn-civil-submit {
+            width: auto;
+        }
+    }
     @media (max-width: 767px) {
         .container.py-5 {
             padding-top: 1.1rem !important;
@@ -164,40 +203,41 @@
     <div class="hero mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
             <h1 class="h3 mb-2">Recherche Civil</h1>
-            <p class="mb-0">Filtrer par province et commune/territoire.</p>
+            <p class="mb-0">Choisissez la <strong>province</strong> (obligatoire), éventuellement une commune, puis des mots-clés pour interroger les tables.</p>
         </div>
         <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-back-home">
             <i class="fas fa-arrow-left me-1"></i>Retour à l'accueil
         </a>
     </div>
 
-    <div class="card search-panel">
+    <div class="card search-panel" id="civil-search-zone">
         <div class="panel-header">
-            <i class="fas fa-filter me-2"></i>Critères de recherche
+            <i class="fas fa-search-location me-2"></i>Zone de recherche
         </div>
         <div class="card-body p-4">
+            <p class="search-zone-hint mb-3 mb-md-4"><i class="fas fa-circle-info text-primary me-1"></i>Les résultats du tableau ci-dessous dépendent de ces critères. Sans province sélectionnée, aucune ligne n’est chargée.</p>
             <form id="civilSearchForm" method="get" action="{% url 'civil_search' %}">
-                <div class="row g-3">
-                    <div class="col-md-6">
+                <div class="row g-2 g-lg-3 align-items-end civil-search-form-row">
+                    <div class="col-12 col-lg-auto civil-province-col">
                         <label for="province" class="form-label">Province</label>
                         <select id="province" name="province" class="form-select" required>
-                            <option value="">-- Sélectionner une province --</option>
+                            <option value="">-- Province --</option>
                             {% for province in provinces %}
                                 <option value="{{ province }}" {% if province == selected_province %}selected{% endif %}>{{ province }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-lg civil-commune-col">
                         <label for="commune" class="form-label">Commune / Territoire</label>
                         <select id="commune" name="commune" class="form-select">
-                            <option value="">-- Toutes les communes/territoires --</option>
+                            <option value="">-- Toutes les communes --</option>
                             {% for commune in communes %}
                                 <option value="{{ commune }}" {% if commune == selected_commune %}selected{% endif %}>{{ commune }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-9">
-                        <label for="q_input" class="form-label">Recherche globale</label>
+                    <div class="col-12 col-lg-auto civil-q-col">
+                        <label for="q_input" class="form-label">Zone de recherche</label>
                         <input
                             id="q_input"
                             name="q"
@@ -207,8 +247,9 @@
                             placeholder="Nom, prénom, téléphone, adresse…"
                         >
                     </div>
-                    <div class="col-md-3 d-flex align-items-end justify-content-md-end">
-                        <button type="submit" class="btn btn-primary btn-search">
+                    <div class="col-12 col-lg-auto">
+                        <label class="form-label d-none d-lg-block text-transparent user-select-none">.</label>
+                        <button type="submit" class="btn btn-primary btn-search btn-civil-submit">
                             <i class="fas fa-search me-1"></i>Rechercher
                         </button>
                     </div>
@@ -223,18 +264,40 @@
         </div>
         <div class="card-body p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 result-toolbar">
-                <div class="d-flex align-items-center gap-2">
-                    <label for="entries" class="mb-0">Entries</label>
-                    <select id="entries" name="entries" form="civilSearchForm" class="form-select form-select-sm" style="width: 90px;">
-                        <option value="10" {% if entries == '10' %}selected{% endif %}>10</option>
-                        <option value="25" {% if entries == '25' %}selected{% endif %}>25</option>
-                        <option value="50" {% if entries == '50' %}selected{% endif %}>50</option>
-                        <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
-                    </select>
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+                    <a href="#civil-search-zone" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center" title="Remonter au formulaire : province, commune, zone de recherche">
+                        <i class="fas fa-sliders me-1"></i>Modifier les critères
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="entries" class="mb-0 text-nowrap">Lignes / page</label>
+                        <select id="entries" name="entries" form="civilSearchForm" class="form-select form-select-sm" style="width: 90px;">
+                            <option value="10" {% if entries == '10' %}selected{% endif %}>10</option>
+                            <option value="25" {% if entries == '25' %}selected{% endif %}>25</option>
+                            <option value="50" {% if entries == '50' %}selected{% endif %}>50</option>
+                            <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 200px;">
+                        <label for="civilTableFilter" class="mb-0 text-nowrap small text-muted d-none d-sm-inline">Filtrer cette page</label>
+                        <input type="search" id="civilTableFilter" class="form-control form-control-sm filter-page-input" placeholder="Filtrer les lignes affichées…" autocomplete="off" title="Masque les lignes du tableau qui ne contiennent pas ce texte">
+                    </div>
                 </div>
-                <span class="text-muted small">Recherche active : {{ query|default:"(aucune)" }}</span>
+                <span class="text-muted small result-criteria-line" title="Même chose que dans le formulaire au-dessus, au moment du dernier « Rechercher »">
+                    <span class="d-block small text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.04em;">Critères appliqués</span>
+                    <span class="d-block">
+                        {% if selected_province %}<strong>{{ selected_province }}</strong>{% else %}<em class="fw-normal">province —</em>{% endif %}
+                        {% if selected_commune %}<span> · {{ selected_commune }}</span>{% else %}<span class="text-black-50"> · toutes communes</span>{% endif %}
+                        {% if query %}<span> · « {{ query }} »</span>{% else %}<span class="text-black-50"> · sans mot-clé</span>{% endif %}
+                    </span>
+                </span>
             </div>
             <input type="hidden" id="pageInput" name="page" form="civilSearchForm" value="{{ page|default:1 }}">
+
+            {% if not selected_province %}
+            <div class="alert alert-light border border-primary border-opacity-25 mb-3 py-2 small" role="status">
+                <i class="fas fa-arrow-up me-1 text-primary"></i>Sélectionnez une <strong>province</strong> dans la <a href="#civil-search-zone" class="alert-link">zone de recherche</a>, puis cliquez sur <strong>Rechercher</strong> pour charger les données.
+            </div>
+            {% endif %}
 
             <div class="table-responsive shadow-sm rounded-3">
                 <table class="table table-hover align-middle table-pro">
@@ -251,9 +314,9 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="civilResultsBody">
                         {% for row in rows %}
-                            <tr>
+                            <tr class="civil-data-row">
                                 <td>{{ row.index }}</td>
                                 <td>{{ row.nom }}</td>
                                 <td>{{ row.postnom }}</td>
@@ -272,8 +335,15 @@
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr>
-                                <td colspan="9" class="text-center table-empty">Aucune donnée à afficher.</td>
+                            <tr class="civil-empty-row">
+                                <td colspan="9" class="text-center table-empty">
+                                    {% if not selected_province %}
+                                        <p class="mb-2 mb-md-3">Aucune donnée : commencez par la <strong>zone de recherche</strong> (province obligatoire).</p>
+                                        <a href="#civil-search-zone" class="btn btn-sm btn-primary"><i class="fas fa-search me-1"></i>Définir la province</a>
+                                    {% else %}
+                                        <p class="mb-0">Aucun enregistrement ne correspond aux critères (commune / mots-clés). Modifiez la recherche ci-dessus.</p>
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -364,6 +434,22 @@
                 form.submit();
             });
         });
+
+        const filterInput = document.getElementById("civilTableFilter");
+        const tbody = document.getElementById("civilResultsBody");
+        if (filterInput && tbody) {
+            filterInput.addEventListener("input", function() {
+                const q = this.value.trim().toLowerCase();
+                tbody.querySelectorAll("tr.civil-data-row").forEach((tr) => {
+                    if (!q) {
+                        tr.style.display = "";
+                        return;
+                    }
+                    const text = (tr.textContent || "").toLowerCase();
+                    tr.style.display = text.indexOf(q) !== -1 ? "" : "none";
+                });
+            });
+        }
     })();
 </script>
 {% endblock %}
