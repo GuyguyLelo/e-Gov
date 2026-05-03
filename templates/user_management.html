@@ -1,6 +1,6 @@
 {% extends 'home.html' %}
 
-{% block title %}Gestion des utilisateurs - e-Gov{% endblock %}
+{% block title %}Gestion des utilisateurs - Fusion{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -47,6 +47,16 @@
         padding: 0.28rem 0.6rem;
         font-weight: 600;
     }
+    .badge-status-on {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .badge-status-off {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
 </style>
 {% endblock %}
 
@@ -54,7 +64,7 @@
 <div class="container py-5">
     <div class="users-hero mb-4">
         <h1 class="h4 mb-2"><i class="fas fa-users-cog me-2"></i>Gestion des utilisateurs</h1>
-        <p class="mb-0">Consultez les comptes existants et gérez les profils d'accès.</p>
+        <p class="mb-0">Créer des comptes, modifier les profils, activer ou désactiver l’accès (sauf votre propre compte actif).</p>
     </div>
 
     <div class="card users-panel">
@@ -69,17 +79,18 @@
             <h2 class="h6 mb-3 text-muted">Créer un utilisateur</h2>
             <form method="post" class="row g-3 users-form mb-4">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="create">
                 <div class="col-md-4">
                     <label for="username" class="form-label">Nom d'utilisateur</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
+                    <input type="text" class="form-control" id="username" name="username" required autocomplete="username">
                 </div>
                 <div class="col-md-4">
                     <label for="password" class="form-label">Mot de passe</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
+                    <input type="password" class="form-control" id="password" name="password" required autocomplete="new-password">
                 </div>
                 <div class="col-md-4">
                     <label for="password_confirm" class="form-label">Confirmer le mot de passe</label>
-                    <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                    <input type="password" class="form-control" id="password_confirm" name="password_confirm" required autocomplete="new-password">
                 </div>
                 <div class="col-md-4 d-flex align-items-center">
                     <div class="form-check mt-3">
@@ -109,23 +120,61 @@
                             <th>Nom d'utilisateur</th>
                             <th>Rôle</th>
                             <th>Statut</th>
-                            <th>Action</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for u in users %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>{{ u.username }}</td>
+                                <td>
+                                    {{ u.username }}
+                                    {% if u.id == user.id %}<span class="badge bg-secondary ms-1">vous</span>{% endif %}
+                                </td>
                                 <td>
                                     {% if u.is_superuser %}
                                         <span class="badge-role">Administrateur</span>
+                                    {% elif u.is_staff %}
+                                        <span class="badge-role">Personnel</span>
                                     {% else %}
                                         <span class="badge-role">Utilisateur</span>
                                     {% endif %}
                                 </td>
-                                <td><span class="text-success fw-semibold">Actif</span></td>
-                                <td><button type="button" class="btn btn-outline-secondary btn-sm" disabled>Modifier</button></td>
+                                <td>
+                                    {% if u.is_active %}
+                                        <span class="badge rounded-pill badge-status-on">Actif</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill badge-status-off">Inactif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex flex-wrap justify-content-end gap-1">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#editUserModal"
+                                            data-user-id="{{ u.id }}"
+                                            data-username="{{ u.username|escape }}"
+                                            data-is-active="{% if u.is_active %}1{% else %}0{% endif %}"
+                                            data-is-admin="{% if u.is_superuser %}1{% else %}0{% endif %}">
+                                            <i class="fas fa-pen me-1"></i>Modifier
+                                        </button>
+                                        {% if u.id != user.id %}
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="toggle_active">
+                                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                                {% if u.is_active %}
+                                                    <button type="submit" class="btn btn-outline-warning btn-sm" title="L’utilisateur ne pourra plus se connecter">
+                                                        <i class="fas fa-user-slash me-1"></i>Désactiver
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-user-check me-1"></i>Activer
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                         {% empty %}
                             <tr>
@@ -138,4 +187,70 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" class="users-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="user_id" id="edit_user_id" value="">
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="editUserModalLabel">Modifier l’utilisateur</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_username" class="form-label">Nom d'utilisateur</label>
+                        <input type="text" class="form-control" id="edit_username" name="username" required autocomplete="username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">Nouveau mot de passe</label>
+                        <input type="password" class="form-control" id="edit_password" name="password" value="" autocomplete="new-password" placeholder="Laisser vide pour ne pas changer">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password_confirm" class="form-label">Confirmer le mot de passe</label>
+                        <input type="password" class="form-control" id="edit_password_confirm" name="password_confirm" value="" autocomplete="new-password" placeholder="Laisser vide si pas de changement">
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="on" id="edit_is_active">
+                        <label class="form-check-label" for="edit_is_active">Compte actif (peut se connecter)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_admin" value="on" id="edit_is_admin">
+                        <label class="form-check-label" for="edit_is_admin">Administrateur (accès interface d’administration)</label>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0" id="edit_self_hint" style="display: none;">Vous ne pouvez pas désactiver votre compte ni retirer vos droits administrateur depuis cette fiche.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const modalEl = document.getElementById("editUserModal");
+    if (!modalEl) return;
+    const currentUserId = {{ user.id }};
+    modalEl.addEventListener("show.bs.modal", function(event) {
+        const btn = event.relatedTarget;
+        if (!btn || !btn.dataset.userId) return;
+        const uid = parseInt(btn.dataset.userId, 10);
+        document.getElementById("edit_user_id").value = btn.dataset.userId;
+        document.getElementById("edit_username").value = btn.dataset.username || "";
+        document.getElementById("edit_password").value = "";
+        document.getElementById("edit_password_confirm").value = "";
+        document.getElementById("edit_is_active").checked = btn.dataset.isActive === "1";
+        document.getElementById("edit_is_admin").checked = btn.dataset.isAdmin === "1";
+        const isSelf = uid === currentUserId;
+        document.getElementById("edit_self_hint").style.display = isSelf ? "block" : "none";
+    });
+})();
+</script>
 {% endblock %}

@@ -244,25 +244,85 @@ def user_management(request):
     error_message = ""
 
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "")
-        password_confirm = request.POST.get("password_confirm", "")
-        is_admin = request.POST.get("is_admin") == "on"
+        action = request.POST.get("action", "").strip()
 
-        if not username:
-            error_message = "Le nom d'utilisateur est obligatoire."
-        elif len(password) < 6:
-            error_message = "Le mot de passe doit contenir au moins 6 caractères."
-        elif password != password_confirm:
-            error_message = "La confirmation du mot de passe ne correspond pas."
-        elif User.objects.filter(username=username).exists():
-            error_message = "Ce nom d'utilisateur existe déjà."
+        if action == "create":
+            username = request.POST.get("username", "").strip()
+            password = request.POST.get("password", "")
+            password_confirm = request.POST.get("password_confirm", "")
+            is_admin = request.POST.get("is_admin") == "on"
+
+            if not username:
+                error_message = "Le nom d'utilisateur est obligatoire."
+            elif len(password) < 6:
+                error_message = "Le mot de passe doit contenir au moins 6 caractères."
+            elif password != password_confirm:
+                error_message = "La confirmation du mot de passe ne correspond pas."
+            elif User.objects.filter(username=username).exists():
+                error_message = "Ce nom d'utilisateur existe déjà."
+            else:
+                user = User.objects.create_user(username=username, password=password)
+                user.is_staff = is_admin
+                user.is_superuser = is_admin
+                user.save(update_fields=["is_staff", "is_superuser"])
+                success_message = f"Utilisateur {username} créé avec succès."
+
+        elif action == "update":
+            user_id = request.POST.get("user_id", "").strip()
+            username_new = request.POST.get("username", "").strip()
+            password = request.POST.get("password", "")
+            password_confirm = request.POST.get("password_confirm", "")
+            is_active = request.POST.get("is_active") == "on"
+            is_admin = request.POST.get("is_admin") == "on"
+
+            try:
+                target = User.objects.get(pk=int(user_id))
+            except (ValueError, TypeError, User.DoesNotExist):
+                error_message = "Utilisateur introuvable."
+            else:
+                if not username_new:
+                    error_message = "Le nom d'utilisateur est obligatoire."
+                elif User.objects.exclude(pk=target.pk).filter(username=username_new).exists():
+                    error_message = "Ce nom d'utilisateur est déjà utilisé."
+                elif password and len(password) < 6:
+                    error_message = "Le mot de passe doit contenir au moins 6 caractères."
+                elif password and password != password_confirm:
+                    error_message = "La confirmation du mot de passe ne correspond pas."
+                elif target.pk == request.user.pk and not is_active:
+                    error_message = "Vous ne pouvez pas désactiver votre propre compte."
+                elif target.pk == request.user.pk and not is_admin:
+                    error_message = "Vous ne pouvez pas retirer vos propres droits administrateur."
+                elif target.is_superuser and not is_admin:
+                    other_supers = User.objects.filter(is_superuser=True).exclude(pk=target.pk).count()
+                    if other_supers < 1:
+                        error_message = "Impossible de retirer les droits administrateur du dernier super-utilisateur."
+                else:
+                    target.username = username_new
+                    target.is_active = is_active
+                    target.is_staff = is_admin
+                    target.is_superuser = is_admin
+                    if password:
+                        target.set_password(password)
+                    target.save()
+                    success_message = f"Utilisateur {username_new} mis à jour."
+
+        elif action == "toggle_active":
+            user_id = request.POST.get("user_id", "").strip()
+            try:
+                target = User.objects.get(pk=int(user_id))
+            except (ValueError, TypeError, User.DoesNotExist):
+                error_message = "Utilisateur introuvable."
+            else:
+                if target.pk == request.user.pk and target.is_active:
+                    error_message = "Vous ne pouvez pas désactiver votre propre compte."
+                else:
+                    target.is_active = not target.is_active
+                    target.save(update_fields=["is_active"])
+                    state = "activé" if target.is_active else "désactivé"
+                    success_message = f"Compte « {target.username} » {state}."
+
         else:
-            user = User.objects.create_user(username=username, password=password)
-            user.is_staff = is_admin
-            user.is_superuser = is_admin
-            user.save(update_fields=["is_staff", "is_superuser"])
-            success_message = f"Utilisateur {username} créé avec succès."
+            error_message = "Action non reconnue."
 
     users = User.objects.order_by("username")
     return render(
