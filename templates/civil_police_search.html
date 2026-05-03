@@ -1,6 +1,6 @@
 {% extends 'home.html' %}
 
-{% block title %}Recherche Civil et Police - Fusion{% endblock %}
+{% block title %}Vérification Civil et Police - Fusion{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -62,8 +62,8 @@
 <div class="container py-5">
     <div class="hero mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <h1 class="h3 mb-2">Recherche Civil et Police</h1>
-            <p class="mb-0">Une même requête interroge les tables <strong>état civil</strong> (province / communes) et la table <strong>POLICE</strong>.</p>
+            <h1 class="h3 mb-2">Civil + Police : existence dans les deux référentiels</h1>
+            <p class="mb-0">Objectif : savoir si une personne <strong>existe</strong> (ou peut exister) à la fois dans l'<strong>état civil</strong> (tables par province / commune) et dans la table <strong>POLICE</strong>. Une même saisie lance les deux interrogations ; comparez les fiches pour confirmer qu'il s'agit de la même identité.</p>
         </div>
         <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-3 fw-semibold">
             <i class="fas fa-arrow-left me-1"></i>Retour à l'accueil
@@ -96,7 +96,7 @@
                         </select>
                     </div>
                     <div class="col-md-8">
-                        <label for="q_input" class="form-label fw-semibold">Mots-clés (civil et police)</label>
+                        <label for="q_input" class="form-label fw-semibold">Identité à vérifier (civil et police)</label>
                         <input id="q_input" name="q" type="text" class="form-control rounded-3" value="{{ query }}" placeholder="Nom, prénom, téléphone, adresse…">
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -119,9 +119,31 @@
         </div>
     </div>
 
+    <div class="alert alert-info border-0 shadow-sm mb-4 py-3" role="note">
+        <div class="d-flex gap-2">
+            <i class="fas fa-circle-info mt-1"></i>
+            <div>
+                <strong>À retenir</strong>
+                <p class="mb-0 small mt-1">Les correspondances sont basées sur des critères texte (nom, prénom, etc.). L’absence de résultat d’un côté signifie qu’aucune ligne ne correspond aux mots-clés, pas qu’une personne n’existe nulle part ailleurs. Pour l’état civil, sélectionnez la <strong>province</strong> concernée.</p>
+            </div>
+        </div>
+    </div>
+
+    {% if query %}
+    <div class="card border mb-4 shadow-sm">
+        <div class="card-body py-3">
+            <h2 class="h6 mb-2 text-secondary"><i class="fas fa-clipboard-check me-2"></i>Synthèse pour cette recherche</h2>
+            <ul class="mb-0 small ps-3">
+                <li class="mb-1"><strong>État civil :</strong> {% if civil.total_rows %}<span class="text-success">au moins {{ civil.total_rows }} occurrence(s)</span> — existence possible dans les tables civiles de la province choisie.{% else %}<span class="text-muted">aucune occurrence</span> avec ces critères (sans province, l’état civil n’est pas interrogé).{% endif %}</li>
+                <li><strong>Table POLICE :</strong> {% if police.total_rows %}<span class="text-success">au moins {{ police.total_rows }} occurrence(s)</span> — existence possible dans POLICE.{% else %}<span class="text-muted">aucune occurrence</span> avec ces critères.{% endif %}</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="card result-panel mb-4">
         <div class="panel-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <span><i class="fas fa-users me-2"></i>Résultats état civil</span>
+            <span><i class="fas fa-users me-2"></i>État civil — occurrences possibles</span>
             <span class="badge bg-primary badge-source">CIVIL</span>
         </div>
         <div class="card-body p-4">
@@ -193,7 +215,7 @@
 
     <div class="card result-panel">
         <div class="panel-header police d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <span><i class="fas fa-user-shield me-2"></i>Résultats Police</span>
+            <span><i class="fas fa-user-shield me-2"></i>POLICE — occurrences possibles</span>
             <span class="badge bg-info text-dark badge-source">POLICE</span>
         </div>
         <div class="card-body p-4">
