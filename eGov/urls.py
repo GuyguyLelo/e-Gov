@@ -29,6 +29,7 @@ urlpatterns = [
     path('parametres/utilisateurs/', views.user_management, name='user_management'),
     path('parametres/bases/', views.database_management, name='database_management'),
     path('civil/', views.civil_search, name='civil_search'),
+    path('recherche/civil-police/', views.civil_police_search, name='civil_police_search'),
     path('police/', views.police_search, name='police_search'),
     path('police/detail/', views.police_detail, name='police_detail'),
     path('police/detail/pdf/', views.police_detail_pdf, name='police_detail_pdf'),

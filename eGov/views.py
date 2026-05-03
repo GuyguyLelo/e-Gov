@@ -359,9 +359,7 @@ def database_management(request):
     )
 
 
-@login_required
-def civil_search(request):
-    provinces = []
+def fetch_civil_provinces_list() -> list[str]:
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -372,27 +370,23 @@ def civil_search(request):
             ORDER BY nom_database ASC
             """
         )
-        provinces = [row[0] for row in cursor.fetchall()]
+        return [row[0] for row in cursor.fetchall()]
 
-    selected_province = request.GET.get("province", "").strip()
-    selected_commune = request.GET.get("commune", "").strip()
-    query = request.GET.get("q", "").strip()
-    entries = request.GET.get("entries", "10").strip()
-    if entries not in {"10", "25", "50", "100"}:
-        entries = "10"
-    limit = int(entries)
-    page = request.GET.get("page", "1").strip()
-    try:
-        page = max(int(page), 1)
-    except ValueError:
-        page = 1
 
+def run_civil_search_query(
+    selected_province: str,
+    selected_commune: str,
+    query: str,
+    limit: int,
+    page: int,
+) -> dict:
     communes = get_allowed_communes(selected_province) if selected_province else []
-
-    rows = []
+    rows: list[dict] = []
     total_rows = 0
     total_pages = 0
+    page = max(page, 1)
     offset = (page - 1) * limit
+
     if selected_province:
         db_alias = resolve_db_alias(selected_province)
         if db_alias:
@@ -502,44 +496,24 @@ def civil_search(request):
                         for idx, row in enumerate(fetched, start=1)
                     ]
 
-    return render(
-        request,
-        "civil_search.html",
-        {
-            "provinces": provinces,
-            "communes": communes,
-            "selected_province": selected_province,
-            "selected_commune": selected_commune,
-            "entries": entries,
-            "query": query,
-            "rows": rows,
-            "page": page,
-            "total_rows": total_rows,
-            "total_pages": total_pages,
-            "has_prev": page > 1,
-            "has_next": total_pages > page,
-            "prev_page": page - 1,
-            "next_page": page + 1,
-        },
-    )
+    return {
+        "rows": rows,
+        "page": page,
+        "total_rows": total_rows,
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": total_pages > page,
+        "prev_page": page - 1,
+        "next_page": page + 1,
+        "communes": communes,
+    }
 
 
-@login_required
-def police_search(request):
-    query = request.GET.get("q", "").strip()
-    entries = request.GET.get("entries", "10").strip()
-    if entries not in {"10", "25", "50", "100"}:
-        entries = "10"
-    limit = int(entries)
-    page = request.GET.get("page", "1").strip()
-    try:
-        page = max(int(page), 1)
-    except ValueError:
-        page = 1
-
-    rows = []
+def run_police_search_query(query: str, limit: int, page: int) -> dict:
+    rows: list[dict] = []
     total_rows = 0
     total_pages = 0
+    page = max(page, 1)
     offset = (page - 1) * limit
 
     db_alias = resolve_db_alias("POLICE")
@@ -623,20 +597,125 @@ def police_search(request):
                     for idx, row in enumerate(fetched, start=1)
                 ]
 
+    return {
+        "rows": rows,
+        "page": page,
+        "total_rows": total_rows,
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": total_pages > page,
+        "prev_page": page - 1,
+        "next_page": page + 1,
+    }
+
+
+@login_required
+def civil_search(request):
+    provinces = fetch_civil_provinces_list()
+    selected_province = request.GET.get("province", "").strip()
+    selected_commune = request.GET.get("commune", "").strip()
+    query = request.GET.get("q", "").strip()
+    entries = request.GET.get("entries", "10").strip()
+    if entries not in {"10", "25", "50", "100"}:
+        entries = "10"
+    limit = int(entries)
+    page = request.GET.get("page", "1").strip()
+    try:
+        page = max(int(page), 1)
+    except ValueError:
+        page = 1
+
+    data = run_civil_search_query(selected_province, selected_commune, query, limit, page)
+    return render(
+        request,
+        "civil_search.html",
+        {
+            "provinces": provinces,
+            "communes": data["communes"],
+            "selected_province": selected_province,
+            "selected_commune": selected_commune,
+            "entries": entries,
+            "query": query,
+            "rows": data["rows"],
+            "page": data["page"],
+            "total_rows": data["total_rows"],
+            "total_pages": data["total_pages"],
+            "has_prev": data["has_prev"],
+            "has_next": data["has_next"],
+            "prev_page": data["prev_page"],
+            "next_page": data["next_page"],
+        },
+    )
+
+
+@login_required
+def police_search(request):
+    query = request.GET.get("q", "").strip()
+    entries = request.GET.get("entries", "10").strip()
+    if entries not in {"10", "25", "50", "100"}:
+        entries = "10"
+    limit = int(entries)
+    page = request.GET.get("page", "1").strip()
+    try:
+        page = max(int(page), 1)
+    except ValueError:
+        page = 1
+
+    data = run_police_search_query(query, limit, page)
     return render(
         request,
         "police_search.html",
         {
             "entries": entries,
             "query": query,
-            "rows": rows,
-            "page": page,
-            "total_rows": total_rows,
-            "total_pages": total_pages,
-            "has_prev": page > 1,
-            "has_next": total_pages > page,
-            "prev_page": page - 1,
-            "next_page": page + 1,
+            "rows": data["rows"],
+            "page": data["page"],
+            "total_rows": data["total_rows"],
+            "total_pages": data["total_pages"],
+            "has_prev": data["has_prev"],
+            "has_next": data["has_next"],
+            "prev_page": data["prev_page"],
+            "next_page": data["next_page"],
+        },
+    )
+
+
+@login_required
+def civil_police_search(request):
+    provinces = fetch_civil_provinces_list()
+    selected_province = request.GET.get("province", "").strip()
+    selected_commune = request.GET.get("commune", "").strip()
+    query = request.GET.get("q", "").strip()
+    entries = request.GET.get("entries", "10").strip()
+    if entries not in {"10", "25", "50", "100"}:
+        entries = "10"
+    limit = int(entries)
+    page_civil = request.GET.get("page_civil", "1").strip()
+    page_police = request.GET.get("page_police", "1").strip()
+    try:
+        page_civil = max(int(page_civil), 1)
+    except ValueError:
+        page_civil = 1
+    try:
+        page_police = max(int(page_police), 1)
+    except ValueError:
+        page_police = 1
+
+    civil = run_civil_search_query(selected_province, selected_commune, query, limit, page_civil)
+    police = run_police_search_query(query, limit, page_police)
+
+    return render(
+        request,
+        "civil_police_search.html",
+        {
+            "provinces": provinces,
+            "communes": civil["communes"],
+            "selected_province": selected_province,
+            "selected_commune": selected_commune,
+            "entries": entries,
+            "query": query,
+            "civil": civil,
+            "police": police,
         },
     )
 
