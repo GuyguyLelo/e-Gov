@@ -771,7 +771,8 @@ def build_police_record(record_id: str):
         "telephone": pretty_value("Téléphone", first_of("Tel", "Téléphone", "TELEPHONE")),
         "adresse": str(first_of("Adresse", "ADRESSE") or "").strip(),
         "province": province,
-        "commune": "POLICE",
+        "commune": physical_table or "POLICE",
+        "photo_url": extract_photo_url(values),
     }
 
     excluded_norm_keys = {
@@ -787,6 +788,8 @@ def build_police_record(record_id: str):
         normalize("F20"),
         normalize("{"),
     }
+    for media_key in ("photo", "photo_url", "image", "image_url", "avatar", "avatar_url"):
+        excluded_norm_keys.add(normalize(media_key))
     other_values = [
         {"label": pretty_label(key), "value": pretty_value(key, value)}
         for key, value in values.items()
@@ -853,7 +856,7 @@ def police_detail_pdf(request):
         y -= 0.6 * cm
         p.setFillColor(colors.HexColor("#1F3C77"))
         p.setFont("Helvetica-Bold", 16)
-        p.drawCentredString(width / 2, y, "FICHE INDIVIDUELLE")
+        p.drawCentredString(width / 2, y, "FICHE INDIVIDUELLE — POLICE")
         y -= 1.45 * cm
         y -= 0.15 * cm
 
@@ -894,6 +897,8 @@ def police_detail_pdf(request):
         ("Sexe", record["sexe"] or "-"),
         ("Telephone", record["telephone"] or "-"),
         ("Adresse", record["adresse"] or "-"),
+        ("Province", record["province"] or "-"),
+        ("Table", record["commune"] or "-"),
     ]
     rows.extend((str(item["label"]), str(item["value"])) for item in other_values)
     for label, value in rows:

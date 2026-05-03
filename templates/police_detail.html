@@ -41,6 +41,34 @@
         min-width: 0;
     }
 
+    .hero-photo-wrap {
+        flex-shrink: 0;
+    }
+
+    .hero-photo,
+    .hero-photo-placeholder {
+        width: 110px;
+        height: 110px;
+        border-radius: 14px;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-photo {
+        object-fit: cover;
+        background: #fff;
+    }
+
+    .hero-photo-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+    }
+
     .detail-card {
         border: 0;
         border-radius: 16px;
@@ -78,6 +106,20 @@
         font-weight: 600;
         font-size: 0.9rem;
         line-height: 1.2;
+    }
+
+    .table-fields thead th {
+        background: #f3f6fb;
+        color: #3f4752;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.03em;
+        border-bottom: 0;
+    }
+
+    .table-fields td {
+        vertical-align: top;
+        border-color: #eef1f5;
     }
 
     .info-list {
@@ -150,6 +192,15 @@
                 <span>ID: {{ record.id }}</span>
             </div>
         </div>
+        <div class="hero-photo-wrap">
+            {% if record.photo_url %}
+                <img src="{{ record.photo_url }}" alt="Photo" class="hero-photo">
+            {% else %}
+                <div class="hero-photo-placeholder">
+                    {{ record.nom|default:""|first }}{{ record.postnom|default:""|first }}
+                </div>
+            {% endif %}
+        </div>
     </div>
 
     <div class="card detail-card mb-4">
@@ -199,7 +250,8 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'police_detail_pdf' %}?id={{ record.id|urlencode }}" class="btn btn-outline-primary btn-back" target="_blank">
+        <a href="{% url 'police_detail_pdf' %}?id={{ record.id|urlencode }}"
+           class="btn btn-outline-primary btn-back" target="_blank">
             <i class="fas fa-file-pdf me-1"></i> Voir la fiche
         </a>
         <a href="{% url 'police_search' %}" class="btn btn-outline-secondary btn-back">
