@@ -95,13 +95,9 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-8">
                         <label for="q_input" class="form-label fw-semibold">Identité à vérifier (civil et police)</label>
-                        <input id="q_input" name="q" type="text" class="form-control rounded-3" value="{{ query }}" placeholder="Nom, prénom, téléphone, adresse…">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="matricule_input" class="form-label fw-semibold">Matricule (Police)</label>
-                        <input id="matricule_input" name="matricule" type="text" class="form-control rounded-3" value="{{ matricule }}" placeholder="N° ou extrait" autocomplete="off">
+                        <input id="q_input" name="q" type="text" class="form-control rounded-3" value="{{ query }}" placeholder="Nom, prénom, matricule (police), téléphone…">
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <select id="entries" name="entries" class="form-select rounded-3">
@@ -128,18 +124,18 @@
             <i class="fas fa-circle-info mt-1"></i>
             <div>
                 <strong>À retenir</strong>
-                <p class="mb-0 small mt-1">Les correspondances sont basées sur des critères texte (nom, prénom, etc.). Pour la <strong>Police</strong>, le champ matricule cible la colonne « matricule » de la table si elle existe. L’absence de résultat d’un côté signifie qu’aucune ligne ne correspond aux critères. Pour l’état civil, sélectionnez la <strong>province</strong> concernée.</p>
+                <p class="mb-0 small mt-1">Les correspondances sont basées sur des critères texte (nom, prénom, etc.). Pour la <strong>Police</strong>, la même zone de recherche couvre aussi le <strong>matricule</strong> lorsque la colonne existe dans la table. L’absence de résultat d’un côté signifie qu’aucune ligne ne correspond aux critères. Pour l’état civil, sélectionnez la <strong>province</strong> concernée.</p>
             </div>
         </div>
     </div>
 
-    {% if query or matricule %}
+    {% if query %}
     <div class="card border mb-4 shadow-sm">
         <div class="card-body py-3">
             <h2 class="h6 mb-2 text-secondary"><i class="fas fa-clipboard-check me-2"></i>Synthèse pour cette recherche</h2>
             <ul class="mb-0 small ps-3">
                 <li class="mb-1"><strong>État civil :</strong> {% if civil.total_rows %}<span class="text-success">au moins {{ civil.total_rows }} occurrence(s)</span> — existence possible dans les tables civiles de la province choisie.{% else %}<span class="text-muted">aucune occurrence</span> avec ces critères (sans province, l’état civil n’est pas interrogé).{% endif %}</li>
-                <li><strong>Table POLICE :</strong> {% if police.total_rows %}<span class="text-success">au moins {{ police.total_rows }} occurrence(s)</span> — existence possible dans POLICE{% if matricule %} (filtre matricule pris en compte){% endif %}.{% else %}<span class="text-muted">aucune occurrence</span> avec les mots-clés{% if matricule %} et le matricule saisi{% endif %}.{% endif %}</li>
+                <li><strong>Table POLICE :</strong> {% if police.total_rows %}<span class="text-success">au moins {{ police.total_rows }} occurrence(s)</span> — existence possible dans POLICE (y compris matricule si la colonne existe).{% else %}<span class="text-muted">aucune occurrence</span> avec ces critères.{% endif %}</li>
             </ul>
         </div>
     </div>
@@ -224,7 +220,7 @@
         </div>
         <div class="card-body p-4">
             <div class="result-toolbar mb-3">
-                <span class="text-muted small">Table <strong>POLICE</strong> — mots-clés : <strong>{{ query|default:"—" }}</strong> · matricule : <strong>{{ matricule|default:"—" }}</strong></span>
+                <span class="text-muted small">Table <strong>POLICE</strong> — même requête (inclut le matricule si la colonne existe) : <strong>{{ query|default:"(vide)" }}</strong></span>
             </div>
             <div class="table-responsive shadow-sm rounded-3">
                 <table class="table table-hover align-middle table-pro">
@@ -234,6 +230,7 @@
                             <th>Nom</th>
                             <th>Postnom</th>
                             <th>Prénom</th>
+                            <th>Matricule</th>
                             <th>Sexe</th>
                             <th>Téléphone</th>
                             <th>Adresse</th>
@@ -247,6 +244,7 @@
                                 <td>{{ row.nom }}</td>
                                 <td>{{ row.postnom }}</td>
                                 <td>{{ row.prenom }}</td>
+                                <td>{{ row.matricule|default:"—" }}</td>
                                 <td>{{ row.sexe }}</td>
                                 <td>{{ row.telephone }}</td>
                                 <td>{{ row.adresse }}</td>
@@ -260,7 +258,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">Aucun résultat dans la table POLICE.</td>
+                                <td colspan="9" class="text-center text-muted py-4">Aucun résultat dans la table POLICE.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

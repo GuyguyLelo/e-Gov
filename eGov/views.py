@@ -509,7 +509,7 @@ def run_civil_search_query(
     }
 
 
-def run_police_search_query(query: str, limit: int, page: int, matricule: str = "") -> dict:
+def run_police_search_query(query: str, limit: int, page: int) -> dict:
     rows: list[dict] = []
     total_rows = 0
     total_pages = 0
@@ -540,23 +540,21 @@ def run_police_search_query(query: str, limit: int, page: int, matricule: str = 
                     "sexe": pick_column(columns, "Sexe", "SEXE", "sexe"),
                     "telephone": pick_column(columns, "Tel", "Téléphone", "TELEPHONE", "telephone"),
                     "adresse": pick_column(columns, "Adresse", "ADRESSE", "adresse"),
+                    "matricule": pick_column(
+                        columns,
+                        "Matricule",
+                        "MATRICULE",
+                        "matricule",
+                        "N_Matricule",
+                        "NUM_MATRICULE",
+                        "Num_matricule",
+                        "Numero_matricule",
+                        "Matricule_Police",
+                        "MATRICULE_POLICE",
+                    ),
                 }
 
                 quote = conn.ops.quote_name
-                matricule_col = pick_column(
-                    columns,
-                    "Matricule",
-                    "MATRICULE",
-                    "matricule",
-                    "N_Matricule",
-                    "NUM_MATRICULE",
-                    "Num_matricule",
-                    "Numero_matricule",
-                    "Matricule_Police",
-                    "MATRICULE_POLICE",
-                )
-                mat_stripped = (matricule or "").strip()
-
                 select_parts = [f'{quote(id_col)}::text AS "_id"' if id_col else 'NULL::text AS "_id"']
                 search_parts = []
                 for alias, real_col in selected_cols.items():
@@ -575,24 +573,16 @@ def run_police_search_query(query: str, limit: int, page: int, matricule: str = 
                     search_parts.append(f"COALESCE({quote(col)}::text, '') ILIKE %s")
 
                 base_sql = f"FROM {quote(physical_table)}"
-                where_parts: list[str] = []
-                params: list = []
-
-                if mat_stripped:
-                    if matricule_col:
-                        where_parts.append(f"COALESCE({quote(matricule_col)}::text, '') ILIKE %s")
-                        params.append(f"%{mat_stripped}%")
-                    elif not (query and search_parts):
-                        where_parts.append("1 = 0")
-
+                params = []
+                where_clause = ""
                 if query and search_parts:
                     tokens = [token for token in query.split() if token]
+                    token_clauses = []
                     for token in tokens:
-                        where_parts.append(f"({' OR '.join(search_parts)})")
+                        token_clauses.append(f"({' OR '.join(search_parts)})")
                         like = f"%{token}%"
                         params.extend([like] * len(search_parts))
-
-                where_clause = " WHERE " + " AND ".join(where_parts) if where_parts else ""
+                    where_clause = " WHERE " + " AND ".join(token_clauses)
 
                 count_sql = f"SELECT COUNT(*) {base_sql}{where_clause}"
                 cursor.execute(count_sql, params)
@@ -615,6 +605,7 @@ def run_police_search_query(query: str, limit: int, page: int, matricule: str = 
                         "sexe": row[4] or "",
                         "telephone": row[5] or "",
                         "adresse": row[6] or "",
+                        "matricule": row[7] or "",
                     }
                     for idx, row in enumerate(fetched, start=1)
                 ]
@@ -673,7 +664,6 @@ def civil_search(request):
 @login_required
 def police_search(request):
     query = request.GET.get("q", "").strip()
-    matricule = request.GET.get("matricule", "").strip()
     entries = request.GET.get("entries", "10").strip()
     if entries not in {"10", "25", "50", "100"}:
         entries = "10"
@@ -684,14 +674,13 @@ def police_search(request):
     except ValueError:
         page = 1
 
-    data = run_police_search_query(query, limit, page, matricule=matricule)
+    data = run_police_search_query(query, limit, page)
     return render(
         request,
         "police_search.html",
         {
             "entries": entries,
             "query": query,
-            "matricule": matricule,
             "rows": data["rows"],
             "page": data["page"],
             "total_rows": data["total_rows"],
@@ -710,7 +699,6 @@ def civil_police_search(request):
     selected_province = request.GET.get("province", "").strip()
     selected_commune = request.GET.get("commune", "").strip()
     query = request.GET.get("q", "").strip()
-    matricule = request.GET.get("matricule", "").strip()
     entries = request.GET.get("entries", "10").strip()
     if entries not in {"10", "25", "50", "100"}:
         entries = "10"
@@ -727,7 +715,7 @@ def civil_police_search(request):
         page_police = 1
 
     civil = run_civil_search_query(selected_province, selected_commune, query, limit, page_civil)
-    police = run_police_search_query(query, limit, page_police, matricule=matricule)
+    police = run_police_search_query(query, limit, page_police)
 
     return render(
         request,
@@ -739,7 +727,6 @@ def civil_police_search(request):
             "selected_commune": selected_commune,
             "entries": entries,
             "query": query,
-            "matricule": matricule,
             "civil": civil,
             "police": police,
         },
@@ -788,6 +775,25 @@ def build_police_record(record_id: str):
                     return value
         return ""
 
+    matricule_col = pick_column(
+        columns,
+        "Matricule",
+        "MATRICULE",
+        "matricule",
+        "N_Matricule",
+        "NUM_MATRICULE",
+        "Num_matricule",
+        "Numero_matricule",
+        "Matricule_Police",
+        "MATRICULE_POLICE",
+    )
+    matricule_text = ""
+    if matricule_col:
+        raw_mat = values.get(matricule_col)
+        matricule_text = str(raw_mat).strip() if raw_mat is not None else ""
+        if matricule_text.endswith(".0") and matricule_text.replace(".", "", 1).isdigit():
+            matricule_text = matricule_text[:-2]
+
     record = {
         "id": record_id,
         "nom": str(first_of("Nom", "NOM") or "").strip().upper(),
@@ -796,6 +802,7 @@ def build_police_record(record_id: str):
         "sexe": first_of("Sexe", "SEXE"),
         "telephone": pretty_value("Téléphone", first_of("Tel", "Téléphone", "TELEPHONE")),
         "adresse": str(first_of("Adresse", "ADRESSE") or "").strip(),
+        "matricule": matricule_text,
         "province": province,
         "commune": physical_table or "POLICE",
         "photo_url": extract_photo_url(values),
@@ -814,6 +821,8 @@ def build_police_record(record_id: str):
         normalize("F20"),
         normalize("{"),
     }
+    if matricule_col:
+        excluded_norm_keys.add(normalize(matricule_col))
     for media_key in ("photo", "photo_url", "image", "image_url", "avatar", "avatar_url"):
         excluded_norm_keys.add(normalize(media_key))
     other_values = [
@@ -923,6 +932,7 @@ def police_detail_pdf(request):
         ("Sexe", record["sexe"] or "-"),
         ("Telephone", record["telephone"] or "-"),
         ("Adresse", record["adresse"] or "-"),
+        ("Matricule", record.get("matricule") or "-"),
         ("Province", record["province"] or "-"),
         ("Table", record["commune"] or "-"),
     ]

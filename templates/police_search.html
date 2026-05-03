@@ -71,7 +71,7 @@
     <div class="hero mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
             <h1 class="h3 mb-2">Recherche Police</h1>
-            <p class="mb-0">Recherche sur la table <strong>POLICE</strong> : mots-clés (identité, contact…) et optionnellement par <strong>matricule</strong>.</p>
+            <p class="mb-0">Recherche sur la table <strong>POLICE</strong> : nom, prénom, téléphone, adresse, <strong>matricule</strong> (si la colonne existe), etc.</p>
         </div>
         <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-back-home">
             <i class="fas fa-arrow-left me-1"></i>Retour à l'accueil
@@ -85,16 +85,12 @@
         <div class="card-body p-4">
             <form id="policeSearchForm" method="get" action="{% url 'police_search' %}">
                 <div class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-9">
                         <label for="q_input" class="form-label">Recherche globale</label>
-                        <input id="q_input" name="q" type="text" class="form-control" value="{{ query }}" placeholder="Nom, prénom, téléphone…">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="matricule_input" class="form-label">Matricule</label>
-                        <input id="matricule_input" name="matricule" type="text" class="form-control" value="{{ matricule }}" placeholder="N° ou extrait de matricule" autocomplete="off">
+                        <input id="q_input" name="q" type="text" class="form-control" value="{{ query }}" placeholder="Nom, matricule, téléphone…">
                     </div>
                     <div class="col-md-3 d-flex align-items-end justify-content-md-end">
-                        <button type="submit" class="btn btn-primary btn-search w-100 w-md-auto">
+                        <button type="submit" class="btn btn-primary btn-search">
                             <i class="fas fa-search me-1"></i>Rechercher
                         </button>
                     </div>
@@ -119,7 +115,7 @@
                         <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
                     </select>
                 </div>
-                <span class="text-muted small">Mots-clés : <strong>{{ query|default:"—" }}</strong> · Matricule : <strong>{{ matricule|default:"—" }}</strong></span>
+                <span class="text-muted small">Recherche active : <strong>{{ query|default:"(aucune)" }}</strong></span>
             </div>
 
             <div class="table-responsive">
@@ -130,6 +126,7 @@
                             <th>Nom</th>
                             <th>Postnom</th>
                             <th>Prénom</th>
+                            <th>Matricule</th>
                             <th>Sexe</th>
                             <th>Téléphone</th>
                             <th>Adresse</th>
@@ -143,6 +140,7 @@
                                 <td>{{ row.nom }}</td>
                                 <td>{{ row.postnom }}</td>
                                 <td>{{ row.prenom }}</td>
+                                <td>{{ row.matricule|default:"—" }}</td>
                                 <td>{{ row.sexe }}</td>
                                 <td>{{ row.telephone }}</td>
                                 <td>{{ row.adresse }}</td>
@@ -156,7 +154,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="8" class="text-center text-muted">Aucune donnée à afficher.</td>
+                                <td colspan="9" class="text-center text-muted">Aucune donnée à afficher.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
