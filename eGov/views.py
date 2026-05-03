@@ -95,6 +95,13 @@ def pick_column(columns: list[str], *candidates: str):
     return None
 
 
+def db_cell_as_str(value) -> str:
+    """Convertit une valeur SQL en texte pour liens et affichage (garde l'identifiant 0)."""
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
 def resolve_db_alias(province: str) -> str | None:
     if province in connections.databases:
         return province
@@ -542,7 +549,7 @@ def run_civil_search_query(
                     fetched = cursor.fetchall()
                     rows = [
                         {
-                            "id": row[0] or "",
+                            "id": db_cell_as_str(row[0]),
                             "index": offset + idx,
                             "nom": row[1] or "",
                             "postnom": row[2] or "",
@@ -657,7 +664,7 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                 fetched = cursor.fetchall()
                 rows = [
                     {
-                        "id": row[0] or "",
+                        "id": db_cell_as_str(row[0]),
                         "index": offset + idx,
                         "nom": row[1] or "",
                         "postnom": row[2] or "",
