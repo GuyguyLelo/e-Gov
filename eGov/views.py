@@ -509,7 +509,7 @@ def run_civil_search_query(
     }
 
 
-def run_police_search_query(query: str, limit: int, page: int) -> dict:
+def run_police_search_query(query: str, limit: int, page: int, matricule: str = "") -> dict:
     rows: list[dict] = []
     total_rows = 0
     total_pages = 0
@@ -543,6 +543,20 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                 }
 
                 quote = conn.ops.quote_name
+                matricule_col = pick_column(
+                    columns,
+                    "Matricule",
+                    "MATRICULE",
+                    "matricule",
+                    "N_Matricule",
+                    "NUM_MATRICULE",
+                    "Num_matricule",
+                    "Numero_matricule",
+                    "Matricule_Police",
+                    "MATRICULE_POLICE",
+                )
+                mat_stripped = (matricule or "").strip()
+
                 select_parts = [f'{quote(id_col)}::text AS "_id"' if id_col else 'NULL::text AS "_id"']
                 search_parts = []
                 for alias, real_col in selected_cols.items():
@@ -561,16 +575,24 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                     search_parts.append(f"COALESCE({quote(col)}::text, '') ILIKE %s")
 
                 base_sql = f"FROM {quote(physical_table)}"
-                params = []
-                where_clause = ""
+                where_parts: list[str] = []
+                params: list = []
+
+                if mat_stripped:
+                    if matricule_col:
+                        where_parts.append(f"COALESCE({quote(matricule_col)}::text, '') ILIKE %s")
+                        params.append(f"%{mat_stripped}%")
+                    elif not (query and search_parts):
+                        where_parts.append("1 = 0")
+
                 if query and search_parts:
                     tokens = [token for token in query.split() if token]
-                    token_clauses = []
                     for token in tokens:
-                        token_clauses.append(f"({' OR '.join(search_parts)})")
+                        where_parts.append(f"({' OR '.join(search_parts)})")
                         like = f"%{token}%"
                         params.extend([like] * len(search_parts))
-                    where_clause = " WHERE " + " AND ".join(token_clauses)
+
+                where_clause = " WHERE " + " AND ".join(where_parts) if where_parts else ""
 
                 count_sql = f"SELECT COUNT(*) {base_sql}{where_clause}"
                 cursor.execute(count_sql, params)
@@ -651,6 +673,7 @@ def civil_search(request):
 @login_required
 def police_search(request):
     query = request.GET.get("q", "").strip()
+    matricule = request.GET.get("matricule", "").strip()
     entries = request.GET.get("entries", "10").strip()
     if entries not in {"10", "25", "50", "100"}:
         entries = "10"
@@ -661,13 +684,14 @@ def police_search(request):
     except ValueError:
         page = 1
 
-    data = run_police_search_query(query, limit, page)
+    data = run_police_search_query(query, limit, page, matricule=matricule)
     return render(
         request,
         "police_search.html",
         {
             "entries": entries,
             "query": query,
+            "matricule": matricule,
             "rows": data["rows"],
             "page": data["page"],
             "total_rows": data["total_rows"],
@@ -686,6 +710,7 @@ def civil_police_search(request):
     selected_province = request.GET.get("province", "").strip()
     selected_commune = request.GET.get("commune", "").strip()
     query = request.GET.get("q", "").strip()
+    matricule = request.GET.get("matricule", "").strip()
     entries = request.GET.get("entries", "10").strip()
     if entries not in {"10", "25", "50", "100"}:
         entries = "10"
@@ -702,7 +727,7 @@ def civil_police_search(request):
         page_police = 1
 
     civil = run_civil_search_query(selected_province, selected_commune, query, limit, page_civil)
-    police = run_police_search_query(query, limit, page_police)
+    police = run_police_search_query(query, limit, page_police, matricule=matricule)
 
     return render(
         request,
@@ -714,6 +739,7 @@ def civil_police_search(request):
             "selected_commune": selected_commune,
             "entries": entries,
             "query": query,
+            "matricule": matricule,
             "civil": civil,
             "police": police,
         },

@@ -71,7 +71,7 @@
     <div class="hero mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
             <h1 class="h3 mb-2">Recherche Police</h1>
-            <p class="mb-0">Recherche globale sur la table <strong>POLICE</strong> (base POLICE).</p>
+            <p class="mb-0">Recherche sur la table <strong>POLICE</strong> : mots-clés (identité, contact…) et optionnellement par <strong>matricule</strong>.</p>
         </div>
         <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-back-home">
             <i class="fas fa-arrow-left me-1"></i>Retour à l'accueil
@@ -85,12 +85,16 @@
         <div class="card-body p-4">
             <form id="policeSearchForm" method="get" action="{% url 'police_search' %}">
                 <div class="row g-3">
-                    <div class="col-md-9">
+                    <div class="col-md-5">
                         <label for="q_input" class="form-label">Recherche globale</label>
-                        <input id="q_input" name="q" type="text" class="form-control" value="{{ query }}" placeholder="Saisir un mot-clé">
+                        <input id="q_input" name="q" type="text" class="form-control" value="{{ query }}" placeholder="Nom, prénom, téléphone…">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="matricule_input" class="form-label">Matricule</label>
+                        <input id="matricule_input" name="matricule" type="text" class="form-control" value="{{ matricule }}" placeholder="N° ou extrait de matricule" autocomplete="off">
                     </div>
                     <div class="col-md-3 d-flex align-items-end justify-content-md-end">
-                        <button type="submit" class="btn btn-primary btn-search">
+                        <button type="submit" class="btn btn-primary btn-search w-100 w-md-auto">
                             <i class="fas fa-search me-1"></i>Rechercher
                         </button>
                     </div>
@@ -115,7 +119,7 @@
                         <option value="100" {% if entries == '100' %}selected{% endif %}>100</option>
                     </select>
                 </div>
-                <span class="text-muted small">Recherche active : {{ query|default:"(aucune)" }}</span>
+                <span class="text-muted small">Mots-clés : <strong>{{ query|default:"—" }}</strong> · Matricule : <strong>{{ matricule|default:"—" }}</strong></span>
             </div>
 
             <div class="table-responsive">
