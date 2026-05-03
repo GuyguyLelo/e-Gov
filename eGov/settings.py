@@ -126,6 +126,8 @@ DATABASES = {
     "KONGO_CENTRAL": db_config("DB_KONGO_CENTRAL", "KONGO_CENTRAL"),
     "POLICE": db_config("DB_POLICE", "POLICE"),
     "KWILU": db_config("DB_KWILU", "KWILU"),
+    "MAI_NDOMBE": db_config("DB_MAI_NDOMBE", "MAI_NDOMBE"),
+    "KWANGO": db_config("DB_KWANGO", "KWANGO"),
 }
 
 

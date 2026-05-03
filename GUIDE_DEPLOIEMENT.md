@@ -79,6 +79,27 @@ DB_POLICE_USER=egov_user
 DB_POLICE_PASSWORD=ChangeMe_Strong_123!
 DB_POLICE_HOST=localhost
 DB_POLICE_PORT=5432
+
+DB_KWILU_ENGINE=django.db.backends.postgresql
+DB_KWILU_NAME=kwilu
+DB_KWILU_USER=egov_user
+DB_KWILU_PASSWORD=ChangeMe_Strong_123!
+DB_KWILU_HOST=localhost
+DB_KWILU_PORT=5432
+
+DB_MAI_NDOMBE_ENGINE=django.db.backends.postgresql
+DB_MAI_NDOMBE_NAME=mai_ndombe
+DB_MAI_NDOMBE_USER=egov_user
+DB_MAI_NDOMBE_PASSWORD=ChangeMe_Strong_123!
+DB_MAI_NDOMBE_HOST=localhost
+DB_MAI_NDOMBE_PORT=5432
+
+DB_KWANGO_ENGINE=django.db.backends.postgresql
+DB_KWANGO_NAME=kwango
+DB_KWANGO_USER=egov_user
+DB_KWANGO_PASSWORD=ChangeMe_Strong_123!
+DB_KWANGO_HOST=localhost
+DB_KWANGO_PORT=5432
 EOF"
 ```
 
