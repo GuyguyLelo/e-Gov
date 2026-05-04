@@ -664,6 +664,9 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                         "Identifiant",
                         "IDENTIFIANT",
                     )
+                # Solution de secours: utiliser la première colonne comme ID si aucune n'est trouvée
+                if not id_col and columns:
+                    id_col = columns[0]
                 selected_cols = {
                     "nom": pick_column(columns, "Nom", "NOM", "nom"),
                     "postnom": pick_column(columns, "Postnom", "POSTNOM", "postnom"),
