@@ -306,7 +306,7 @@
                                 <td><span class="badge-zone">{{ row.province_commune }}</span></td>
                                 <td>
                                     {% if row.id and selected_province %}
-                                        <a href="{% url 'civil_detail' %}?province={{ selected_province|urlencode }}&commune={{ row.commune|urlencode }}&id={{ row.id|urlencode }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                                        <a href="{% url 'civil_detail' %}?province={{ selected_province|urlencode }}&commune={{ row.commune|urlencode }}&id={{ row.id|urlencode }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye me-1" aria-hidden="true"></i>Voir</a>
                                     {% else %}
                                         <span class="text-muted">-</span>
                                     {% endif %}
@@ -373,7 +373,6 @@
                             <th scope="col">Matricule</th>
                             <th scope="col">Sexe</th>
                             <th scope="col">Téléphone</th>
-                            <th scope="col">Adresse</th>
                             <th scope="col" class="text-end">Action</th>
                         </tr>
                     </thead>
@@ -399,11 +398,10 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-nowrap">{{ row.telephone }}</td>
-                                <td class="small text-break" style="max-width: 14rem;">{{ row.adresse }}</td>
                                 <td class="text-end">
                                     {% if row.id %}
                                         <div class="d-inline-flex flex-wrap gap-1 justify-content-end police-action-btns ms-auto">
-                                            <a href="{% url 'police_detail' %}?id={{ row.id|urlencode }}" class="btn btn-sm btn-outline-primary btn-view-police">Voir</a>
+                                            <a href="{% url 'police_detail' %}?id={{ row.id|urlencode }}" class="btn btn-sm btn-outline-primary btn-view-police"><i class="fas fa-eye me-1" aria-hidden="true"></i>Voir</a>
                                             <a href="{% url 'police_detail_pdf' %}?id={{ row.id|urlencode }}" class="btn-view-police-pdf" target="_blank" rel="noopener noreferrer" title="Fiche individuelle police (PDF)"><i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Voir fiche</a>
                                         </div>
                                     {% else %}
@@ -413,7 +411,7 @@
                             </tr>
                         {% empty %}
                             <tr class="police-cp-empty-row">
-                                <td colspan="9" class="text-center table-police-empty">Aucun résultat dans la table POLICE pour ces mots-clés serveur.</td>
+                                <td colspan="8" class="text-center table-police-empty">Aucun résultat dans la table POLICE pour ces mots-clés serveur.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

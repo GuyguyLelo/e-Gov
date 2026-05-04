@@ -95,6 +95,34 @@ def pick_column(columns: list[str], *candidates: str):
     return None
 
 
+def pick_table_primary_key_column(cursor, physical_table: str) -> str | None:
+    """
+    Retourne le nom réel de la première colonne de clé primaire (PostgreSQL, schéma public).
+    Utile quand la table n'a pas de colonne nommée exactement ID / id.
+    """
+    try:
+        cursor.execute(
+            """
+            SELECT kcu.column_name
+            FROM information_schema.table_constraints tc
+            JOIN information_schema.key_column_usage kcu
+              ON tc.constraint_catalog = kcu.constraint_catalog
+              AND tc.constraint_schema = kcu.constraint_schema
+              AND tc.constraint_name = kcu.constraint_name
+            WHERE tc.table_schema = 'public'
+              AND tc.table_name = %s
+              AND tc.constraint_type = 'PRIMARY KEY'
+            ORDER BY kcu.ordinal_position
+            LIMIT 1
+            """,
+            [physical_table],
+        )
+        row = cursor.fetchone()
+        return row[0] if row else None
+    except Exception:
+        return None
+
+
 def db_cell_as_str(value) -> str:
     """Convertit une valeur SQL en texte pour liens et affichage (garde l'identifiant 0)."""
     if value is None:
@@ -167,7 +195,17 @@ def build_civil_record(province: str, commune: str, record_id: str):
             [physical_table],
         )
         columns = [row[0] for row in cursor.fetchall()]
-        id_col = pick_column(columns, "ID", "id")
+        id_col = pick_column(columns, "ID", "id", "Id")
+        if not id_col:
+            id_col = pick_table_primary_key_column(cursor, physical_table)
+        if not id_col:
+            id_col = pick_column(
+                columns,
+                "Cle",
+                "CLE",
+                "Identifiant",
+                "IDENTIFIANT",
+            )
         if not id_col:
             raise Http404("Colonne ID introuvable.")
 
@@ -487,7 +525,20 @@ def run_civil_search_query(
                     if not columns:
                         continue
 
-                    id_col = pick_column(columns, "ID", "id")
+                    id_col = pick_column(columns, "ID", "id", "Id")
+                    if not id_col:
+                        id_col = pick_table_primary_key_column(cursor, physical_table)
+                    if not id_col:
+                        id_col = pick_column(
+                            columns,
+                            "Police_ID",
+                            "ID_POLICE",
+                            "Id_Police",
+                            "Cle",
+                            "CLE",
+                            "Identifiant",
+                            "IDENTIFIANT",
+                        )
                     selected_cols = {
                         "nom": pick_column(columns, "Nom", "NOM", "nom"),
                         "postnom": pick_column(columns, "Postnom", "POSTNOM", "postnom"),
@@ -599,7 +650,20 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                 )
                 columns = [row[0] for row in cursor.fetchall()]
 
-                id_col = pick_column(columns, "ID", "id")
+                id_col = pick_column(columns, "ID", "id", "Id")
+                if not id_col:
+                    id_col = pick_table_primary_key_column(cursor, physical_table)
+                if not id_col:
+                    id_col = pick_column(
+                        columns,
+                        "Police_ID",
+                        "ID_POLICE",
+                        "Id_Police",
+                        "Cle",
+                        "CLE",
+                        "Identifiant",
+                        "IDENTIFIANT",
+                    )
                 selected_cols = {
                     "nom": pick_column(columns, "Nom", "NOM", "nom"),
                     "postnom": pick_column(columns, "Postnom", "POSTNOM", "postnom"),
@@ -625,6 +689,8 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                 select_parts = [f'{quote(id_col)}::text AS "_id"' if id_col else 'NULL::text AS "_id"']
                 search_parts = []
                 for alias, real_col in selected_cols.items():
+                    if alias == "adresse":
+                        continue
                     if real_col:
                         select_parts.append(f'{quote(real_col)}::text AS "{alias}"')
                     else:
@@ -671,8 +737,7 @@ def run_police_search_query(query: str, limit: int, page: int) -> dict:
                         "prenom": row[3] or "",
                         "sexe": row[4] or "",
                         "telephone": row[5] or "",
-                        "adresse": row[6] or "",
-                        "matricule": row[7] or "",
+                        "matricule": row[6] or "",
                     }
                     for idx, row in enumerate(fetched, start=1)
                 ]
@@ -821,7 +886,20 @@ def build_police_record(record_id: str):
             [physical_table],
         )
         columns = [row[0] for row in cursor.fetchall()]
-        id_col = pick_column(columns, "ID", "id")
+        id_col = pick_column(columns, "ID", "id", "Id")
+        if not id_col:
+            id_col = pick_table_primary_key_column(cursor, physical_table)
+        if not id_col:
+            id_col = pick_column(
+                columns,
+                "Police_ID",
+                "ID_POLICE",
+                "Id_Police",
+                "Cle",
+                "CLE",
+                "Identifiant",
+                "IDENTIFIANT",
+            )
         if not id_col:
             raise Http404("Colonne ID introuvable.")
 
