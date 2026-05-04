@@ -903,6 +903,9 @@ def build_police_record(record_id: str):
                 "Identifiant",
                 "IDENTIFIANT",
             )
+        # Solution de secours: utiliser la première colonne comme ID si aucune n'est trouvée
+        if not id_col and columns:
+            id_col = columns[0]
         if not id_col:
             raise Http404("Colonne ID introuvable.")
 
