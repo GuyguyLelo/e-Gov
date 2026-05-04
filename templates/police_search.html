@@ -49,13 +49,139 @@
             width: auto;
         }
     }
-    .table-pro thead th {
-        background: linear-gradient(180deg, #eff4ff 0%, #e7efff 100%);
-        color: #334155;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
+    /* Style liste POLICE : thème indigo / violet (aligné sur la marque Fusion) */
+    .panel-header-police-results {
+        background: linear-gradient(135deg, #3730a3 0%, #5b21b6 55%, #6d28d9 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        color: #f5f3ff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
     }
+
+    .police-results-badge {
+        background: rgba(255, 255, 255, 0.18) !important;
+        color: #fff !important;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(4px);
+    }
+
+    .table-police-list {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e0e7ff;
+        margin-bottom: 0;
+    }
+
+    .table-police-list thead th {
+        background: linear-gradient(180deg, #4338ca 0%, #3730a3 100%);
+        border-bottom: 0;
+        color: #eef2ff;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 700;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .table-police-list tbody td {
+        vertical-align: middle;
+        border-color: #e8eafd;
+        padding-top: 0.68rem;
+        padding-bottom: 0.68rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .table-police-list tbody tr:nth-child(even) td {
+        background: #fafaff;
+    }
+
+    .table-police-list tbody tr:hover td {
+        background: #f1f0ff;
+    }
+
+    .table-police-list tbody tr.police-data-row:hover td {
+        box-shadow: inset 3px 0 0 #7c3aed;
+    }
+
+    .police-idx {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        color: #6366f1;
+        width: 2.75rem;
+    }
+
+    .badge-matricule {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #5b21b6;
+        background: linear-gradient(135deg, #ede9fe 0%, #e9d5ff 100%);
+        border: 1px solid #c4b5fd;
+        border-radius: 8px;
+        padding: 0.22rem 0.55rem;
+    }
+
+    .badge.police-sexe {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding: 0.2rem 0.45rem;
+        border: 1px solid #e9d5ff !important;
+        background: #faf5ff !important;
+        color: #6b21a8 !important;
+    }
+
+    .btn-view-police {
+        border-radius: 9px;
+        padding: 0.34rem 0.82rem;
+        font-weight: 600;
+        border-color: #7c3aed;
+        color: #5b21b6;
+        background: #fff;
+    }
+
+    .btn-view-police:hover {
+        background: linear-gradient(135deg, #667eea 0%, #7c3aed 100%);
+        border-color: #6d28d9;
+        color: #fff;
+    }
+
+    .table-police-empty {
+        padding: 1.5rem 1rem !important;
+        font-weight: 500;
+        color: #64748b !important;
+        background: #fafaff;
+    }
+
+    .pagination .page-link {
+        border-radius: 10px;
+        margin-left: 0.2rem;
+        margin-right: 0.2rem;
+        border: 1px solid #c7d2fe;
+        color: #4338ca;
+        font-weight: 600;
+        min-width: 42px;
+        text-align: center;
+    }
+
+    .pagination .page-link:hover {
+        background: linear-gradient(135deg, #667eea 0%, #7c3aed 100%);
+        border-color: #6d28d9;
+        color: #fff;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        border-color: #e9eafd;
+        color: #a5b4fc;
+        background: #fafaff;
+    }
+
     @media (max-width: 767px) {
         .container.py-5 {
             padding-top: 1.1rem !important;
@@ -71,11 +197,11 @@
         .result-toolbar {
             padding: 0.65rem;
         }
-        .table-pro {
+        .table-police-list {
             min-width: 860px;
         }
-        .table-pro thead th,
-        .table-pro tbody td {
+        .table-police-list thead th,
+        .table-police-list tbody td {
             font-size: 0.78rem;
             white-space: nowrap;
         }
@@ -122,8 +248,9 @@
     </div>
 
     <div class="card result-panel mt-4">
-        <div class="panel-header">
-            <i class="fas fa-table me-2"></i>Résultats
+        <div class="panel-header panel-header-police-results d-flex flex-wrap align-items-center gap-2">
+            <span><i class="fas fa-user-shield me-2"></i>Liste POLICE</span>
+            <span class="badge rounded-pill ms-lg-auto police-results-badge">Résultats</span>
         </div>
         <div class="card-body p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 result-toolbar">
@@ -151,35 +278,47 @@
                 </span>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle table-pro">
+            <div class="table-responsive shadow-sm rounded-3 border border-light">
+                <table class="table table-hover align-middle table-police-list mb-0">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Nom</th>
-                            <th>Postnom</th>
-                            <th>Prénom</th>
-                            <th>Matricule</th>
-                            <th>Sexe</th>
-                            <th>Téléphone</th>
-                            <th>Adresse</th>
-                            <th>Action</th>
+                            <th scope="col">#</th>
+                            <th scope="col">Nom</th>
+                            <th scope="col">Postnom</th>
+                            <th scope="col">Prénom</th>
+                            <th scope="col">Matricule</th>
+                            <th scope="col">Sexe</th>
+                            <th scope="col">Téléphone</th>
+                            <th scope="col">Adresse</th>
+                            <th scope="col" class="text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody id="policeResultsBody">
                         {% for row in rows %}
                             <tr class="police-data-row">
-                                <td>{{ row.index }}</td>
-                                <td>{{ row.nom }}</td>
+                                <td class="police-idx">{{ row.index }}</td>
+                                <td class="fw-semibold text-dark">{{ row.nom }}</td>
                                 <td>{{ row.postnom }}</td>
                                 <td>{{ row.prenom }}</td>
-                                <td>{{ row.matricule|default:"—" }}</td>
-                                <td>{{ row.sexe }}</td>
-                                <td>{{ row.telephone }}</td>
-                                <td>{{ row.adresse }}</td>
                                 <td>
+                                    {% if row.matricule %}
+                                        <span class="badge-matricule"><i class="fas fa-id-card" aria-hidden="true"></i>{{ row.matricule }}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.sexe %}
+                                        <span class="badge rounded-pill police-sexe">{{ row.sexe }}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-nowrap">{{ row.telephone }}</td>
+                                <td class="small text-break" style="max-width: 14rem;">{{ row.adresse }}</td>
+                                <td class="text-end">
                                     {% if row.id %}
-                                        <a href="{% url 'police_detail' %}?id={{ row.id|urlencode }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                                        <a href="{% url 'police_detail' %}?id={{ row.id|urlencode }}" class="btn btn-sm btn-outline-primary btn-view-police">Voir</a>
                                     {% else %}
                                         <span class="text-muted">-</span>
                                     {% endif %}
@@ -187,7 +326,7 @@
                             </tr>
                         {% empty %}
                             <tr class="police-empty-row">
-                                <td colspan="9" class="text-center text-muted py-4">Aucune donnée à afficher. Saisissez des mots-clés dans la <a href="#police-search-zone" class="link-primary">zone de recherche</a> puis lancez la recherche.</td>
+                                <td colspan="9" class="text-center table-police-empty">Aucune donnée à afficher. Saisissez des mots-clés dans la <a href="#police-search-zone" class="link-primary">zone de recherche</a> puis lancez la recherche.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
